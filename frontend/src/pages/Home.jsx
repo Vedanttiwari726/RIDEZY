@@ -1,10 +1,5 @@
-import React,
-{ useEffect, useState, useContext } from "react";
-
-import {
-useNavigate,
-useLocation
-} from "react-router-dom";
+import React,{ useEffect, useState, useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import api from "../services/api";
 import { SocketContext } from "../context/SocketContext";
@@ -13,6 +8,14 @@ import { UserDataContext } from "../context/UserContext";
 import RideTracking from "./RideTracking";
 
 import "remixicon/fonts/remixicon.css";
+
+/* vehicle images */
+
+import bikeImg from "../assets/vehicles/bike.png";
+import autoImg from "../assets/vehicles/auto.png";
+import miniImg from "../assets/vehicles/mini.png";
+import sedanImg from "../assets/vehicles/sedan.png";
+import suvImg from "../assets/vehicles/suv.png";
 
 export default function Home(){
 
@@ -40,38 +43,78 @@ const [finalFare,setFinalFare] = useState(null);
 const [rideStatus,setRideStatus]=useState("idle");
 const [driverData,setDriverData]=useState(null);
 
-const [promoIndex,setPromoIndex]=useState(0);
+const [vehicleIndex,setVehicleIndex]=useState(0);
 
-/* ⭐ LOCATION FIX */
+/* ⭐ LOCATION */
+
 const [currentLocation,setCurrentLocation]=useState(null);
 
 
 /* VEHICLES */
 
 const vehicles=[
-{type:"bike",icon:"🏍️"},
-{type:"auto",icon:"🛺"},
-{type:"mini",icon:"🚗"},
-{type:"sedan",icon:"🚙"},
-{type:"suv",icon:"🚐"}
+
+{type:"bike",image:bikeImg},
+{type:"auto",image:autoImg},
+{type:"mini",image:miniImg},
+{type:"sedan",image:sedanImg},
+{type:"suv",image:suvImg}
+
 ];
 
-/* PROMOTIONS */
+
+/* ⭐ COUPON SLIDER */
 
 const promotions=[
-{
-title:"Get 20% OFF",
-subtitle:"On your next ride",
-bg:"bg-black text-white"
-},
-{
-title:"Weekend Cashback",
-subtitle:"Flat ₹100 OFF",
-bg:"bg-yellow-400 text-black"
-}
-];
 
-/* ⭐ GET USER GPS LOCATION */
+{
+code:"RIDE20",
+title:"20% OFF Ride",
+subtitle:"Save up to ₹80",
+color:"from-green-500 to-emerald-600"
+},
+
+{
+code:"WELCOME50",
+title:"₹50 OFF First Ride",
+subtitle:"New user special",
+color:"from-purple-500 to-indigo-600"
+},
+
+{
+code:"NIGHT30",
+title:"30% OFF Night Ride",
+subtitle:"Valid 10PM-5AM",
+color:"from-blue-500 to-cyan-500"
+},
+
+{
+code:"SAVE100",
+title:"Flat ₹100 OFF",
+subtitle:"On rides above ₹300",
+color:"from-orange-500 to-red-500"
+}
+
+]
+
+const [promoIndex,setPromoIndex]=useState(0)
+
+/* AUTO SLIDE */
+
+useEffect(()=>{
+
+const interval=setInterval(()=>{
+
+setPromoIndex(prev=>(prev+1)%promotions.length)
+
+},3500)
+
+return()=>clearInterval(interval)
+
+},[])
+
+
+/* GPS */
 
 useEffect(()=>{
 
@@ -116,6 +159,7 @@ return()=>socket.off("ride-accepted",handleAccept);
 
 },[socket,user]);
 
+
 /* RECEIVE SEARCH */
 
 useEffect(()=>{
@@ -128,12 +172,14 @@ if(pick) setPickup(pick);
 if(drop) setDestination(drop);
 
 if(openVehicle && pick && drop){
+setShowVehicles(true);
 fetchFareAndOpen(pick,drop);
 }
 
-navigate(routerLocation.pathname,{replace:true});
+window.history.replaceState({}, document.title);
 
 },[routerLocation.state]);
+
 
 /* FETCH FARE */
 
@@ -149,7 +195,6 @@ destination:drop?.address || drop
 });
 
 setFare(res.data);
-setShowVehicles(true);
 
 }catch(err){
 console.log(err);
@@ -157,27 +202,6 @@ console.log(err);
 
 };
 
-/* APPLY COUPON */
-
-const applyCoupon = async () => {
-
-try{
-
-const baseFare = fare?.[selectedVehicle];
-
-const res = await api.post("/coupon/apply",{
-code:coupon,
-fare:baseFare
-});
-
-setDiscount(res.data.discount);
-setFinalFare(res.data.finalFare);
-
-}catch(err){
-alert(err.response?.data?.message || "Invalid coupon");
-}
-
-};
 
 /* CREATE RIDE */
 
@@ -185,15 +209,10 @@ const createRide = async () => {
 
 const basePrice = fare?.[selectedVehicle] || 0;
 
-const rideFare = finalFare ?? basePrice;
-
 const finalBid =
 userBid && Number(userBid) > 0
 ? Number(userBid)
-: rideFare;
-
-
-/* ⭐ LOCATION FIX */
+: basePrice;
 
 const pickupLat =
 pickup?.lat ||
@@ -208,7 +227,6 @@ destination?.lat;
 
 const destinationLng =
 destination?.lng;
-
 
 const res = await api.post("/rides/create",{
 
@@ -239,200 +257,196 @@ socket.emit("request-driver",res.data._id);
 
 };
 
-/* PROMO AUTO */
 
-useEffect(()=>{
-const id=setInterval(()=>{
-setPromoIndex(p=>(p+1)%promotions.length);
-},4000);
-return()=>clearInterval(id);
-},[]);
+/* CAROUSEL */
+
+const nextVehicle = ()=>{
+setVehicleIndex(prev=>(prev+1)%vehicles.length)
+}
+
+const prevVehicle = ()=>{
+setVehicleIndex(prev=> prev===0 ? vehicles.length-1 : prev-1)
+}
+
 
 /* UI */
 
 return(
 
-<div className="min-h-screen bg-gray-100 flex flex-col">
+<div className="min-h-screen bg-[#020617] text-white flex flex-col">
 
 {/* HEADER */}
 
-<div className="p-5 bg-white shadow">
+<div className="flex justify-between items-center px-6 pt-6">
 
-<h1 className="text-3xl font-bold mb-3">
+<h1 className="text-3xl font-bold">
 Ridezy
 </h1>
 
+<div className="flex gap-4 text-xl">
+<i className="ri-notification-3-line"></i>
+<i className="ri-user-line"></i>
+</div>
+
+</div>
+
+
+{/* SEARCH */}
+
 <div
 onClick={()=>navigate("/search")}
-className="flex items-center bg-gray-100 rounded-full px-4 py-3 cursor-pointer">
+className="mx-6 mt-6 backdrop-blur-md bg-white/10 border border-white/10 rounded-full px-5 py-4 flex items-center cursor-pointer">
 
-<i className="ri-search-line mr-3"></i>
+<i className="ri-search-line mr-3 text-lg"></i>
 
 <input
 value={destination?.address || destination || ""}
 readOnly
 placeholder="Where to?"
-className="flex-1 bg-transparent outline-none"
+className="flex-1 bg-transparent outline-none text-white"
 />
 
 </div>
 
-</div>
 
-{/* PROMOTIONS */}
+{/* COUPON SLIDER */}
 
-<div className="p-5">
+<div className="px-6 mt-6">
 
-<div className={`rounded-2xl p-5 ${promotions[promoIndex].bg}`}>
+<div className={`rounded-2xl p-5 bg-gradient-to-r ${promotions[promoIndex].color}`}>
 
-<h2 className="text-xl font-bold">
+<div className="flex justify-between items-center">
+
+<div>
+
+<h2 className="text-lg font-bold">
 {promotions[promoIndex].title}
 </h2>
 
-<p className="text-sm">
+<p className="text-sm opacity-90">
 {promotions[promoIndex].subtitle}
 </p>
 
 </div>
 
+<div className="bg-white text-black px-3 py-1 rounded-lg text-xs font-semibold">
+{promotions[promoIndex].code}
 </div>
-
-{/* VEHICLES QUICK */}
-
-<div className="px-5 grid grid-cols-5 gap-4">
-
-{vehicles.map(v=>(
-<div
-key={v.type}
-className="flex flex-col items-center cursor-pointer"
-onClick={()=>navigate("/search",{state:{vehicle:v.type}})}
->
-
-<div className="bg-white shadow rounded-full w-14 h-14 flex items-center justify-center text-2xl">
-
-{v.icon}
 
 </div>
 
-<p className="text-xs mt-1 capitalize">
-{v.type}
-</p>
-
 </div>
-))}
 
 </div>
 
-{/* VEHICLE PANEL */}
 
-{showVehicles && (
-<div className="fixed inset-0 bg-white z-[9999] flex flex-col">
+{/* CAROUSEL */}
 
-<div className="p-5 border-b flex justify-between">
-<h2>Choose Ride</h2>
-<button onClick={()=>setShowVehicles(false)}>✕</button>
-</div>
-
-{/* VEHICLE LIST */}
-
-<div className="p-5 space-y-3 flex-1 overflow-y-auto">
-
-{vehicles.map((v)=>(
-
-<div
-key={v.type}
-onClick={()=>setSelectedVehicle(v.type)}
-className={`border p-4 rounded-xl flex justify-between cursor-pointer
-${selectedVehicle===v.type?"border-black bg-gray-100":""}`}>
-
-<span>{v.icon} {v.type}</span>
-₹ {fare?.[v.type] ?? "--"}
-
-</div>
-
-))}
-
-</div>
-
-{/* COUPON + BID + CONFIRM */}
-
-{selectedVehicle && (
-
-<div className="p-5 border-t space-y-4">
-
-<div className="bg-gray-100 rounded-xl p-4">
-
-<p className="text-sm text-gray-500 mb-2">
-Apply Coupon
-</p>
-
-<div className="flex gap-2">
-
-<input
-type="text"
-placeholder="Enter coupon"
-value={coupon}
-onChange={(e)=>setCoupon(e.target.value)}
-className="flex-1 border p-2 rounded-lg"
-/>
+<div className="flex items-center justify-center mt-10">
 
 <button
-onClick={applyCoupon}
-className="bg-black text-white px-4 rounded-lg">
-Apply
+onClick={prevVehicle}
+className="text-4xl px-6 text-gray-400 hover:text-white"
+>
+‹
+</button>
+
+<div className="flex flex-col items-center">
+
+<img
+src={vehicles[vehicleIndex].image}
+className="w-44 drop-shadow-[0_0_25px_rgba(34,197,94,0.5)]"
+/>
+
+<p className="mt-3 text-lg capitalize font-semibold">
+{vehicles[vehicleIndex].type}
+</p>
+
+</div>
+
+<button
+onClick={nextVehicle}
+className="text-4xl px-6 text-gray-400 hover:text-white"
+>
+›
 </button>
 
 </div>
 
-</div>
 
-<div className="bg-gray-100 rounded-xl p-4">
+{/* BOOK BUTTON */}
 
-<p className="text-sm text-gray-500 mb-2">
-Your Offer Price (optional)
-</p>
+<div className="px-6 mt-8">
 
-<div className="flex items-center border rounded-xl bg-white overflow-hidden">
+<button
+onClick={()=>navigate("/search",{state:{vehicle:vehicles[vehicleIndex].type}})}
+className="w-full bg-green-500 py-4 rounded-2xl text-lg font-semibold shadow-lg">
 
-<span className="px-4 text-gray-500 text-lg">₹</span>
+Book {vehicles[vehicleIndex].type}
 
-<input
-type="number"
-placeholder={`Suggested ₹${fare?.[selectedVehicle] || ""}`}
-value={userBid}
-onChange={(e)=>setUserBid(e.target.value)}
-className="flex-1 p-3 outline-none"
-/>
+</button>
 
 </div>
 
+
+{/* VEHICLE PANEL */}
+
+{showVehicles && (
+
+<div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end z-[9999]">
+
+<div className="bg-[#020617] w-full rounded-t-3xl p-6 space-y-4">
+
+<h2 className="text-xl font-semibold mb-3">
+Choose Ride
+</h2>
+
+{vehicles.map(v=>(
+
+<div
+key={v.type}
+onClick={()=>setSelectedVehicle(v.type)}
+className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer
+${selectedVehicle===v.type ? "border-green-400 bg-white/10":"border-white/10"}`}
+>
+
+<div className="flex items-center gap-4">
+
+<img src={v.image} className="w-10"/>
+
+<span className="capitalize">
+{v.type}
+</span>
+
 </div>
+
+<span>
+₹ {fare?.[v.type] ?? "--"}
+</span>
+
+</div>
+
+))}
+
+{selectedVehicle && (
 
 <button
 onClick={createRide}
-className="w-full bg-black text-white py-4 rounded-xl text-lg font-semibold">
+className="w-full bg-green-500 py-4 rounded-xl font-semibold mt-4">
 
 Confirm Ride
 
 </button>
 
+)}
+
+</div>
+
 </div>
 
 )}
 
 </div>
-)}
 
-{/* DRIVER MATCHED */}
-
-{rideStatus==="matched" && (
-<RideTracking
-pickup={pickup}
-destination={destination}
-eta={driverData?.eta}
-/>
-)}
-
-</div>
 );
 }

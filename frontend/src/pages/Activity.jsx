@@ -34,7 +34,6 @@ const Activity = () => {
 
       await api.delete(`/rides/history/${rideId}`);
 
-      /* instant UI update */
       setRides((prev) =>
         prev.filter((ride) => ride._id !== rideId)
       );
@@ -48,20 +47,20 @@ const Activity = () => {
   /* ================= LOADING ================= */
   if (loading)
     return (
-      <div className="h-screen flex items-center justify-center text-lg">
+      <div className="h-screen bg-[#020617] flex items-center justify-center text-lg text-white">
         Loading rides...
       </div>
     );
 
   return (
-    <div className="p-5 pb-24">
+    <div className="min-h-screen bg-[#020617] text-white p-6 pb-28">
 
-      <h1 className="text-xl font-semibold mb-5">
+      <h1 className="text-3xl font-bold mb-6">
         Your Trips
       </h1>
 
       {rides.length === 0 ? (
-        <div className="text-gray-500 text-center mt-20">
+        <div className="text-gray-400 text-center mt-20">
           No rides yet 🚕
         </div>
       ) : (
@@ -71,26 +70,43 @@ const Activity = () => {
 
             <div
               key={ride._id}
-              className="bg-white rounded-2xl p-4 shadow border"
+              className="
+              bg-white/10
+              backdrop-blur-md
+              border border-white/10
+              rounded-2xl
+              p-5
+              shadow-lg
+            "
             >
 
-              <div className="flex justify-between mb-2">
-                <span className="font-medium">
+              {/* Pickup + Fare */}
+
+              <div className="flex justify-between mb-3">
+
+                <span className="font-medium text-white">
                   {ride.pickup}
                 </span>
 
-                <span className="text-sm text-gray-500">
+                <span className="text-green-400 font-semibold">
                   ₹{ride.fare}
                 </span>
+
               </div>
 
-              <div className="text-sm text-gray-500 mb-2">
+              {/* Destination */}
+
+              <div className="text-sm text-gray-400 mb-3">
                 {ride.destination}
               </div>
 
-              <div className="flex justify-between items-center text-xs text-gray-400">
+              {/* Status + Date */}
 
-                <span>{ride.status}</span>
+              <div className="flex justify-between items-center text-xs text-gray-500">
+
+                <span className="capitalize">
+                  {ride.status}
+                </span>
 
                 <span>
                   {new Date(
@@ -100,29 +116,30 @@ const Activity = () => {
 
               </div>
 
-              {/* ✅ DELETE BUTTON */}
-             <button
-  onClick={() => deleteRide(ride._id)}
-  className="
-    mt-3
-    w-full
-    bg-red-500
-    hover:bg-red-600
-    active:scale-95
-    transition
-    text-white
-    py-2
-    rounded-lg
-    font-medium
-    flex
-    items-center
-    justify-center
-    gap-2
-  "
->
-  <i className="ri-delete-bin-line"></i>
-  Delete Ride
-</button>
+              {/* DELETE BUTTON */}
+
+              <button
+                onClick={() => deleteRide(ride._id)}
+                className="
+                  mt-4
+                  w-full
+                  bg-red-500/90
+                  hover:bg-red-600
+                  active:scale-95
+                  transition
+                  text-white
+                  py-2.5
+                  rounded-xl
+                  font-medium
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
+                "
+              >
+                <i className="ri-delete-bin-line"></i>
+                Delete Ride
+              </button>
 
             </div>
 

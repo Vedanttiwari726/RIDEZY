@@ -1,13 +1,10 @@
 import React from "react";
-import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 /* GLOBAL SETTINGS */
 import {
-  AppSettingsProvider,
-  useAppSettings
+  AppSettingsProvider
 } from "./context/AppSettingContext";
-
-import { translations } from "./utils/translations";
 
 /* PUBLIC PAGES */
 import Start from "./pages/Start";
@@ -30,6 +27,10 @@ import Safety from "./pages/Safety";
 import RideTracker from "./pages/RideTracker";
 import RideStarted from "./pages/RideStarted";
 
+/* BOTTOM NAV */
+import BottomTabs from "./components/BottomTabs";
+import ChooseVehicle from "./pages/ChooseVehicles";
+
 /* CAPTAIN */
 import CaptainHome from "./pages/CaptainHome";
 import CaptainRiding from "./pages/CaptainRiding";
@@ -44,105 +45,54 @@ import "remixicon/fonts/remixicon.css";
 import "leaflet/dist/leaflet.css";
 
 
-
-/* =====================================================
-   GLOBAL NAVBAR
-===================================================== */
-const BottomNav = () => {
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const { language } = useAppSettings();
-  const t = translations[language] || translations.english;
-
-  const pages = ["/home", "/activity", "/services", "/profile"];
-  if (!pages.includes(location.pathname)) return null;
-
-  const Item = ({ icon, label, to }) => (
-    <div
-      onClick={() => navigate(to)}
-      className={`flex flex-col items-center text-sm cursor-pointer transition ${
-        location.pathname === to
-          ? "text-green-500 font-semibold"
-          : "text-gray-500"
-      }`}
-    >
-      <i className={`${icon} text-xl`} />
-      {label}
-    </div>
-  );
-
-  return (
-    <div
-      className="
-      fixed bottom-3 left-1/2 -translate-x-1/2
-      w-[95%] max-w-md h-[70px]
-      bg-white dark:bg-gray-900
-      rounded-3xl shadow-lg
-      flex justify-around items-center z-50
-    "
-    >
-      <Item icon="ri-home-5-line" label={t.home} to="/home" />
-      <Item icon="ri-time-line" label="Activity" to="/activity" />
-      <Item icon="ri-service-line" label="Services" to="/services" />
-      <Item icon="ri-user-3-line" label={t.profile} to="/profile" />
-    </div>
-  );
-};
-
-
 /* =====================================================
    ROUTES
 ===================================================== */
 const AppRoutes = () => {
   return (
-    <>
-      <Routes>
+    <Routes>
 
-        {/* PUBLIC */}
-        <Route path="/" element={<Start />} />
-        <Route path="/login" element={<UserLogin />} />
-        <Route path="/signup" element={<UserSignup />} />
-        <Route path="/captain-login" element={<CaptainLogin />} />
-        <Route path="/captain-signup" element={<CaptainSignup />} />
+      {/* PUBLIC */}
+      <Route path="/" element={<Start />} />
+      <Route path="/login" element={<UserLogin />} />
+      <Route path="/signup" element={<UserSignup />} />
+      <Route path="/captain-login" element={<CaptainLogin />} />
+      <Route path="/captain-signup" element={<CaptainSignup />} />
 
-        {/* USER PROTECTED */}
-        <Route element={<UserProtectWrapper />}>
+      {/* USER PROTECTED */}
+      <Route element={<UserProtectWrapper />}>
 
-          <Route path="/home" element={<Home />} />
-          <Route path="/search" element={<SearchRide />} />
-          <Route path="/riding" element={<Riding />} />
-          <Route path="/activity" element={<Activity />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/saved-places" element={<SavedPlaces />} />
-          <Route path="/safety" element={<Safety />} />
-          <Route path="/track/:rideId" element={<RideTracker />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/search" element={<SearchRide />} />
+        <Route path="/riding" element={<Riding />} />
+        <Route path="/activity" element={<Activity />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/saved-places" element={<SavedPlaces />} />
+        <Route path="/safety" element={<Safety />} />
+        <Route path="/track/:rideId" element={<RideTracker />} />
 
-          <Route path="/finding-driver" element={<FindingDriver />} />
+        <Route path="/finding-driver" element={<FindingDriver />} />
 
-          {/* ⭐ RIDE START PAGE */}
-          <Route path="/ride-started" element={<RideStarted />} />
+        {/* ⭐ RIDE START PAGE */}
+        <Route path="/ride-started" element={<RideStarted />} />
+        <Route path="/choose-vehicle" element={<ChooseVehicle />} />
 
-          <Route path="/user/logout" element={<UserLogout />} />
+        <Route path="/user/logout" element={<UserLogout />} />
 
-        </Route>
+      </Route>
 
-        {/* CAPTAIN PROTECTED */}
-        <Route element={<CaptainProtectWrapper />}>
+      {/* CAPTAIN PROTECTED */}
+      <Route element={<CaptainProtectWrapper />}>
 
-          <Route path="/captain-home" element={<CaptainHome />} />
-          <Route path="/captain-riding" element={<CaptainRiding />} />
-          <Route path="/captain-trips" element={<Trips />} />
-          <Route path="/captain/logout" element={<CaptainLogout />} />
+        <Route path="/captain-home" element={<CaptainHome />} />
+        <Route path="/captain-riding" element={<CaptainRiding />} />
+        <Route path="/captain-trips" element={<Trips />} />
+        <Route path="/captain/logout" element={<CaptainLogout />} />
 
-        </Route>
+      </Route>
 
-      </Routes>
-
-      <BottomNav />
-    </>
+    </Routes>
   );
 };
 
@@ -178,7 +128,11 @@ const App = () => {
         "
         >
 
+          {/* ROUTES */}
           <AppRoutes />
+
+          {/* GLOBAL BOTTOM NAV */}
+          <BottomTabs />
 
         </div>
 

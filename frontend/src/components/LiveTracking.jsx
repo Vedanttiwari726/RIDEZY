@@ -26,11 +26,11 @@ const createDriverIcon = (angle=0)=> new L.DivIcon({
 html:`
 <div style="transform:rotate(${angle}deg)">
 <img src="https://cdn-icons-png.flaticon.com/512/744/744465.png"
-style="width:40px;height:40px"/>
+style="width:44px;height:44px;filter:drop-shadow(0 0 8px #22c55e)"/>
 </div>
 `,
-iconSize:[40,40],
-iconAnchor:[20,20]
+iconSize:[44,44],
+iconAnchor:[22,22]
 });
 
 /* =========================
@@ -39,8 +39,8 @@ iconAnchor:[20,20]
 
 const pickupIcon = new L.Icon({
 iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png",
-iconSize:[30,30],
-iconAnchor:[15,30]
+iconSize:[34,34],
+iconAnchor:[17,34]
 });
 
 /* =========================
@@ -49,8 +49,8 @@ iconAnchor:[15,30]
 
 const dropIcon = new L.Icon({
 iconUrl:"https://cdn-icons-png.flaticon.com/512/2776/2776067.png",
-iconSize:[30,30],
-iconAnchor:[15,30]
+iconSize:[34,34],
+iconAnchor:[17,34]
 });
 
 
@@ -280,8 +280,8 @@ return ()=>clearInterval(interval)
 if(!userPos){
 
 return(
-<div className="flex items-center justify-center h-full w-full text-gray-600">
-Getting location...
+<div className="flex items-center justify-center h-full w-full bg-black text-white text-lg">
+Locating you...
 </div>
 )
 
@@ -305,9 +305,12 @@ zoomControl={false}
 whenCreated={(map)=>setTimeout(()=>map.invalidateSize(),100)}
 >
 
+{/* ⭐ DARK FUTURISTIC MAP */}
+
 <TileLayer
-url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
 />
+
 
 {userPos && (
 <Marker position={userPos}/>
@@ -334,15 +337,20 @@ icon={dropIcon}
 />
 )}
 
+{/* ⭐ GLOWING ROUTE */}
+
 {route.length>0 && (
 <Polyline
 positions={route}
 pathOptions={{
-color:"#2A7FFF",
-weight:6
+color:"#22c55e",
+weight:7,
+opacity:0.9
 }}
 />
 )}
+
+{/* HEAT ZONES */}
 
 {heatZones?.map((zone,index)=>{
 
