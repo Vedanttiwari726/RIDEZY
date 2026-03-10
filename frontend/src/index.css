@@ -1,0 +1,64 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+;
+
+@keyframes slideUp{
+  from{ transform: translateY(80px); opacity:0 }
+  to{ transform: translateY(0); opacity:1 }
+}
+
+.animate-slideUp{
+  animation: slideUp .35s ease-out;
+}
+
+.input {
+  @apply w-full px-4 py-3 rounded-lg
+  bg-gray-100 dark:bg-gray-800
+  border border-gray-300
+  dark:border-gray-700
+  focus:outline-none
+  focus:ring-2 focus:ring-yellow-500
+  text-gray-800 dark:text-white;
+}
+
+@keyframes promoSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  80% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+
+.animate-promo {
+  animation: promoSlide 3s ease-in-out infinite;
+}
+
+/* ================= MOBILE APP LAYOUT ================= */
+
+body{
+  margin:0;
+  display:flex;
+  justify-content:center;
+  background:#e5e5e5;
+}
+
+#root{
+  width:100%;
+  max-width:430px;
+  min-height:100vh;
+  background:white;
+  overflow-x:hidden;
+}
