@@ -40,7 +40,19 @@ const SocketProvider = ({ children }) => {
 
     const joinUserOrCaptain = () => {
 
-      const captainId = localStorage.getItem("captainId");
+      // 🔥 FIXED: captainId extraction
+      const captainData = localStorage.getItem("captain");
+      let captainId = null;
+
+      try {
+        if (captainData) {
+          const parsed = JSON.parse(captainData);
+          captainId = parsed?._id;
+        }
+      } catch (err) {
+        console.log("Captain parse error:", err.message);
+      }
+
       const userId = localStorage.getItem("userId");
 
       if (captainId) {
@@ -78,6 +90,10 @@ const SocketProvider = ({ children }) => {
       setConnected(true);
 
       joinUserOrCaptain();
+
+      setTimeout(() => {
+      joinUserOrCaptain();
+     }, 1500);
 
     });
 

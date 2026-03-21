@@ -1,10 +1,8 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 /* GLOBAL SETTINGS */
-import {
-  AppSettingsProvider
-} from "./context/AppSettingContext";
+import { AppSettingsProvider } from "./context/AppSettingContext";
 
 /* PUBLIC PAGES */
 import Start from "./pages/Start";
@@ -74,7 +72,7 @@ const AppRoutes = () => {
 
         <Route path="/finding-driver" element={<FindingDriver />} />
 
-        {/* ⭐ RIDE START PAGE */}
+        {/* RIDE START PAGE */}
         <Route path="/ride-started" element={<RideStarted />} />
         <Route path="/choose-vehicle" element={<ChooseVehicle />} />
 
@@ -98,46 +96,70 @@ const AppRoutes = () => {
 
 
 /* =====================================================
-   MAIN APP
+   MAIN APP CONTENT
 ===================================================== */
-const App = () => {
+
+const AppContent = () => {
+
+  const location = useLocation();
+
+  // Hide bottom tabs on captain pages
+  const hideTabs = location.pathname.startsWith("/captain");
 
   return (
-    <AppSettingsProvider>
 
-      {/* OUTER BACKGROUND */}
+    <div
+      className="
+      min-h-screen
+      w-full
+      flex
+      justify-center
+      bg-gray-200
+      dark:bg-neutral-950
+      text-gray-900
+      dark:text-white
+      transition-colors duration-300
+      "
+    >
+
+      {/* MOBILE APP CONTAINER */}
       <div
         className="
-        min-h-screen
         w-full
-        flex
-        justify-center
-        bg-gray-200 dark:bg-black
-      "
+        max-w-[430px]
+        min-h-screen
+        bg-gray-100
+        dark:bg-neutral-950
+        text-gray-900
+        dark:text-white
+        relative
+        overflow-x-hidden
+        transition-colors duration-300
+        "
       >
 
-        {/* MOBILE APP CONTAINER */}
-        <div
-          className="
-          w-full
-          max-w-[430px]
-          min-h-screen
-          bg-gray-100 dark:bg-black
-          relative
-          overflow-x-hidden
-        "
-        >
+        {/* ROUTES */}
+        <AppRoutes />
 
-          {/* ROUTES */}
-          <AppRoutes />
-
-          {/* GLOBAL BOTTOM NAV */}
-          <BottomTabs />
-
-        </div>
+        {/* GLOBAL USER BOTTOM NAV */}
+        {!hideTabs && <BottomTabs />}
 
       </div>
 
+    </div>
+
+  );
+};
+
+
+/* =====================================================
+   ROOT APP
+===================================================== */
+
+const App = () => {
+  return (
+    <AppSettingsProvider>
+      <AppContent />
     </AppSettingsProvider>
   );
 };

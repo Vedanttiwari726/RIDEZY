@@ -5,6 +5,9 @@ const crypto = require('crypto');
 /* ⭐ COUPON SERVICE */
 const { applyCoupon } = require('./coupon.service');
 
+/* 🔥 ADDED FIX (DO NOT REMOVE) */
+const { sendMessageToSocketId, activeDrivers } = require("../socket");
+
 
 /* ===========================
    FARE CALCULATION
@@ -119,14 +122,9 @@ module.exports.getFare = getFare;
    OTP GENERATOR
 =========================== */
 function getOtp(num) {
-
-    return crypto
-        .randomInt(
-            Math.pow(10, num - 1),
-            Math.pow(10, num)
-        )
-        .toString();
-
+  const min = Math.pow(10, num - 1);
+  const max = Math.pow(10, num) - 1;
+  return Math.floor(min + Math.random() * (max - min));
 }
 
 
@@ -141,14 +139,10 @@ function calculateSurge(){
 
     const hour = new Date().getHours();
 
-    /* NIGHT SURGE */
-
     if(hour >= 22 || hour <= 5){
         surge += 0.3;
         reason.push("night");
     }
-
-    /* DEMAND SURGE */
 
     const demandRandom = Math.random();
 
@@ -156,8 +150,6 @@ function calculateSurge(){
         surge += 0.5;
         reason.push("high-demand");
     }
-
-    /* RAIN SURGE */
 
     const rainRandom = Math.random();
 
@@ -286,8 +278,11 @@ module.exports.createRide = async ({
     }
 
 
-    const finalOtp =
-        otp || getOtp(6);
+    const finalOtp = getOtp(4);
+
+    if (!finalOtp) {
+        throw new Error("OTP generation failed");
+    }
 
     const ride = await rideModel.create({
 
@@ -306,15 +301,9 @@ module.exports.createRide = async ({
 
         fare: finalFare,
 
-        /* USER BID */
-
         userBid: finalBid,
 
-        /* COUPON */
-
         discount,
-
-        /* SURGE */
 
         surgeMultiplier,
         surgeReason: surgeData.reason,
@@ -324,6 +313,29 @@ module.exports.createRide = async ({
         status: 'pending'
 
     });
+
+    /* 🔥 SAFE SOCKET EMIT (ADDED ONLY) */
+
+    try {
+
+        console.log("ACTIVE DRIVERS:", activeDrivers);
+
+        activeDrivers.forEach((socketId) => {
+
+            console.log("Sending ride to driver socket:", socketId);
+
+            sendMessageToSocketId(socketId, {
+                event: "new-ride",
+                data: ride
+            });
+
+        });
+
+    } catch (err) {
+
+        console.log("SOCKET ERROR:", err.message);
+
+    }
 
     console.log(
         'OTP GENERATED:',
@@ -396,8 +408,9 @@ module.exports.startRide = async ({
     if (ride.status !== 'accepted')
         throw new Error('Ride not accepted');
 
-    if (String(ride.otp).trim() !== String(otp).trim())
-        throw new Error('Invalid OTP');
+    if (Number(ride.otp) !== Number(otp)) {
+    throw new Error('Invalid OTP');
+}
 
     ride.status = 'ongoing';
     ride.otp = undefined;
@@ -406,6 +419,9 @@ module.exports.startRide = async ({
     await ride.save();
 
     return ride;
+
+    console.log("DB OTP:", ride.otp);
+   console.log("USER OTP:", otp);
 };
 
 

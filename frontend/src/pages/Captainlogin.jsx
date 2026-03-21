@@ -45,7 +45,6 @@ const Captainlogin = () => {
 
         setCaptain(data.captain);
 
-        /* FIXED TOKEN STORAGE */
         localStorage.setItem("captainToken",data.token);
         localStorage.setItem(
           "captain",
@@ -69,13 +68,13 @@ const Captainlogin = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center
-    bg-gray-100 dark:bg-black px-4">
+    bg-[#020617] px-4">
 
       <div className="w-full max-w-md">
 
         {/* LOGO */}
         <h1 className="text-center text-4xl font-bold
-        text-yellow-500 mb-6">
+        text-green-400 mb-6">
           Ridezy
         </h1>
 
@@ -83,7 +82,7 @@ const Captainlogin = () => {
         <div
           ref={sliderRef}
           className="relative flex items-center
-          bg-gray-200 dark:bg-gray-800
+          bg-white/10
           rounded-full p-1 mb-6 cursor-pointer"
           onMouseUp={handleDragEnd}
           onTouchEnd={(e)=>
@@ -92,11 +91,11 @@ const Captainlogin = () => {
           onClick={goUser}
         >
           <span className="ml-4 text-sm
-          text-gray-600 dark:text-gray-300">
+          text-gray-300">
             Slide for User
           </span>
 
-          <div className="ml-auto bg-yellow-500
+          <div className="ml-auto bg-green-500
           text-black font-semibold
           px-6 py-2 rounded-full">
             ← Driver
@@ -104,14 +103,14 @@ const Captainlogin = () => {
         </div>
 
         {/* LOGIN CARD */}
-        <div className="bg-white dark:bg-gray-900
+        <div className="bg-white/5 backdrop-blur-xl
         rounded-2xl shadow-xl p-8
-        border dark:border-gray-800">
+        border border-white/10">
 
           <form onSubmit={submitHandler}>
 
             <h2 className="text-xl font-semibold mb-5
-            text-gray-800 dark:text-white">
+            text-white">
               Captain Login
             </h2>
 
@@ -125,7 +124,7 @@ const Captainlogin = () => {
               className="input mb-4"
             />
 
-            {/* PASSWORD WITH MONKEY */}
+            {/* PASSWORD */}
             <div className="relative mb-5">
 
               <input
@@ -149,8 +148,8 @@ const Captainlogin = () => {
             </div>
 
             <button
-              className="w-full bg-yellow-500
-              hover:bg-yellow-400
+              className="w-full bg-green-500
+              hover:bg-green-400
               text-black font-semibold
               py-3 rounded-lg transition">
               Login
@@ -159,11 +158,11 @@ const Captainlogin = () => {
           </form>
 
           <p className="text-center mt-5
-          text-gray-600 dark:text-gray-400">
+          text-gray-400">
             Join fleet?{" "}
             <Link
               to="/captain-signup"
-              className="text-yellow-500 font-medium">
+              className="text-green-400 font-medium">
               Register as Captain
             </Link>
           </p>

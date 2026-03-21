@@ -483,5 +483,6 @@ const sendMessageToSocketId = (socketId, message) => {
 module.exports = {
   initializeSocket,
   sendMessageToSocketId,
-  startRideAcceptanceTimer
+  startRideAcceptanceTimer,
+  activeDrivers   // 🔥 ADD THIS
 };

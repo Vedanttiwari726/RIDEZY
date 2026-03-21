@@ -10,14 +10,15 @@ const UserSignup = () => {
 
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
+  const [phone,setPhone]=useState("");
+
   const [showPassword,setShowPassword]=useState(false);
 
   const [firstName,setFirstName]=useState("");
   const [lastName,setLastName]=useState("");
+
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState("");
-
-  /* -------- SLIDER -------- */
 
   const sliderRef = useRef(null);
 
@@ -32,7 +33,19 @@ const UserSignup = () => {
     }
   };
 
-  /* -------- SIGNUP -------- */
+  /* NAME VALIDATION (alphabets only) */
+
+  const handleNameChange = (value,setter)=>{
+    const filtered = value.replace(/[^a-zA-Z]/g,"");
+    setter(filtered);
+  };
+
+  /* PHONE VALIDATION (numbers only) */
+
+  const handlePhoneChange = (value)=>{
+    const filtered = value.replace(/\D/g,"");
+    setPhone(filtered);
+  };
 
   const submitHandler = async(e)=>{
     e.preventDefault();
@@ -47,7 +60,8 @@ const UserSignup = () => {
           lastname:lastName
         },
         email,
-        password
+        password,
+        phone
       });
 
       const data = res.data;
@@ -70,13 +84,13 @@ const UserSignup = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center
-    bg-gray-100 dark:bg-black px-4">
+    bg-[#020617] px-4">
 
       <div className="w-full max-w-md">
 
         {/* LOGO */}
         <h1 className="text-center text-4xl font-bold
-        text-yellow-500 mb-6">
+        text-green-400 mb-6">
           Ridezy
         </h1>
 
@@ -84,8 +98,7 @@ const UserSignup = () => {
         <div
           ref={sliderRef}
           className="relative flex items-center
-          bg-gray-200 dark:bg-gray-800
-          rounded-full p-1 mb-6 cursor-pointer"
+          bg-white/10 rounded-full p-1 mb-6 cursor-pointer"
           onMouseUp={handleDragEnd}
           onTouchEnd={(e)=>
             handleDragEnd(e.changedTouches[0])
@@ -93,36 +106,34 @@ const UserSignup = () => {
           onClick={goDriver}
         >
           <div
-            className="bg-yellow-500 text-black
+            className="bg-green-500 text-black
             font-semibold px-6 py-2 rounded-full">
             User →
           </div>
 
-          <span className="ml-auto mr-4 text-sm
-          text-gray-600 dark:text-gray-300">
+          <span className="ml-auto mr-4 text-sm text-gray-300">
             Slide for Driver
           </span>
         </div>
 
         {/* CARD */}
-        <div className="bg-white dark:bg-gray-900
-        rounded-2xl shadow-xl p-8
-        border dark:border-gray-800">
+        <div className="bg-white/5 backdrop-blur-xl
+        rounded-2xl shadow-xl p-8 border border-white/10">
 
           <form onSubmit={submitHandler}>
 
-            <h2 className="text-xl font-semibold mb-4
-            text-gray-800 dark:text-white">
+            <h2 className="text-xl font-semibold mb-4 text-white">
               Create Account
             </h2>
 
             {/* NAME */}
             <div className="flex gap-3 mb-4">
+
               <input
                 required
                 placeholder="First Name"
                 value={firstName}
-                onChange={(e)=>setFirstName(e.target.value)}
+                onChange={(e)=>handleNameChange(e.target.value,setFirstName)}
                 className="input"
               />
 
@@ -130,12 +141,25 @@ const UserSignup = () => {
                 required
                 placeholder="Last Name"
                 value={lastName}
-                onChange={(e)=>setLastName(e.target.value)}
+                onChange={(e)=>handleNameChange(e.target.value,setLastName)}
                 className="input"
               />
+
             </div>
 
+            {/* PHONE */}
+
+            <input
+              required
+              placeholder="Phone Number"
+              value={phone}
+              maxLength="10"
+              onChange={(e)=>handlePhoneChange(e.target.value)}
+              className="input mb-4"
+            />
+
             {/* EMAIL */}
+
             <input
               required
               type="email"
@@ -145,7 +169,8 @@ const UserSignup = () => {
               className="input mb-4"
             />
 
-            {/* PASSWORD WITH MONKEY */}
+            {/* PASSWORD */}
+
             <div className="relative mb-4">
 
               <input
@@ -176,8 +201,8 @@ const UserSignup = () => {
 
             <button
               disabled={loading}
-              className="w-full bg-yellow-500
-              hover:bg-yellow-400
+              className="w-full bg-green-500
+              hover:bg-green-400
               text-black font-semibold
               py-3 rounded-lg transition"
             >
@@ -186,12 +211,11 @@ const UserSignup = () => {
 
           </form>
 
-          <p className="text-center mt-5
-          text-gray-600 dark:text-gray-400">
+          <p className="text-center mt-5 text-gray-400">
             Already have account?{" "}
             <Link
               to="/login"
-              className="text-yellow-500 font-medium">
+              className="text-green-400 font-medium">
               Login
             </Link>
           </p>

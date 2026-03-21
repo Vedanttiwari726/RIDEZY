@@ -1,19 +1,87 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
-import React from 'react'
-import { Link } from 'react-router-dom'
+export default function Start(){
 
-const Start = () => {
-  return (
-    <div>
-      <div className='bg-cover bg-center bg-[url(https://images.unsplash.com/photo-1619059558110-c45be64b73ae?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)] h-screen pt-8 flex justify-between flex-col w-full'>
-        <img className='w-16 ml-8' src="https://cdn-assets-eu.frontify.com/s3/frontify-enterprise-files-eu/eyJwYXRoIjoid2VhcmVcL2ZpbGVcLzhGbTh4cU5SZGZUVjUxYVh3bnEyLnN2ZyJ9:weare:F1cOF9Bps96cMy7r9Y2d7affBYsDeiDoIHfqZrbcxAw?width=1200&height=417" alt="" />
-        <div className='bg-white pb-8 py-4 px-4'>
-          <h2 className='text-[30px] font-semibold'>Get Started with Uber</h2>
-          <Link to='/login' className='flex items-center justify-center w-full bg-black text-white py-3 rounded-lg mt-5'>Continue</Link>
-        </div>
-      </div>
-    </div>
-  )
+const navigate = useNavigate();
+
+return(
+
+<div className="h-screen w-full flex flex-col justify-between bg-[#020617] text-white relative overflow-hidden">
+
+{/* GLOW BACKGROUND */}
+
+<div className="absolute w-[350px] h-[350px] bg-green-500/20 blur-[120px] top-[-120px] left-[-120px]" />
+<div className="absolute w-[350px] h-[350px] bg-blue-500/20 blur-[120px] bottom-[-120px] right-[-120px]" />
+
+{/* TOP RIGHT BUTTONS */}
+
+<div className="flex justify-end gap-3 p-5">
+
+<button
+onClick={()=>navigate("/login")}
+className="text-sm border border-white/20 px-4 py-1.5 rounded-lg hover:bg-white/10 transition"
+>
+
+Sign In
+
+</button>
+
+<button
+onClick={()=>navigate("/signup")}
+className="text-sm bg-green-500 px-4 py-1.5 rounded-lg hover:bg-green-600 transition"
+>
+
+Sign Up
+
+</button>
+
+</div>
+
+
+{/* CENTER CONTENT */}
+
+<div className="flex flex-col items-center text-center px-6">
+
+<h1 className="text-6xl font-bold tracking-wide animate-pulse">
+Ridezy
+</h1>
+
+<p className="text-green-400 mt-3 text-lg font-semibold">
+Go Easy With Ridezy
+</p>
+
+
+
+</div>
+
+
+{/* BOTTOM BUTTON */}
+
+<div className="px-6 pb-10">
+
+<button
+onClick={()=>navigate("/login")}
+className="
+w-full
+bg-green-500
+py-4
+rounded-2xl
+text-lg
+font-semibold
+shadow-lg
+hover:bg-green-600
+transition
+">
+
+Start Ride
+
+</button>
+
+</div>
+
+</div>
+
+);
+
 }
-
-export default Start

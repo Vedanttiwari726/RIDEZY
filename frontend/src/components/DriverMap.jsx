@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useAppSettings } from "../context/AppSettingContext";
 
 /* ICON FIX */
 
@@ -63,6 +64,8 @@ destinationLng,
 phase="pickup"
 }){
 
+const { darkMode } = useAppSettings();
+
 const [driverPos,setDriverPos] = useState(null);
 const [route,setRoute] = useState([]);
 
@@ -75,7 +78,7 @@ useEffect(()=>{
 
 if(!navigator.geolocation) return;
 
-/* ⭐ fallback first location */
+/* fallback first location */
 
 navigator.geolocation.getCurrentPosition(
 
@@ -94,7 +97,7 @@ console.log("GPS initial error:",err);
 
 );
 
-/* ⭐ continuous tracking */
+/* continuous tracking */
 
 watchRef.current = navigator.geolocation.watchPosition(
 
@@ -211,14 +214,23 @@ Getting driver location...
 return(
 
 <MapContainer
+key={darkMode ? "dark-map" : "light-map"}
 center={driverPos}
 zoom={16}
 style={{height:"100%",width:"100%"}}
 zoomControl={false}
 >
 
+{/* THEME BASED MAP */}
+
 <TileLayer
-url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+key={darkMode ? "dark-tiles" : "light-tiles"}
+url={
+darkMode
+? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+}
+attribution="&copy; OpenStreetMap contributors"
 />
 
 {/* DRIVER */}

@@ -64,7 +64,7 @@ const map = useMap()
 
 useEffect(()=>{
 
-if(!position) return
+if(!position || position[0]==null || position[1]==null) return
 
 let zoom = 16
 
@@ -87,7 +87,13 @@ return null
    MAIN COMPONENT
 ========================= */
 
-const LiveTracking = ({pickup,destination,driverLocation,heatZones=[]})=>{
+const LiveTracking = ({
+pickup,
+destination,
+driverLocation,
+heatZones=[],
+userLiveLocation   // 🔥 ADDED
+})=>{
 
 const [userPos,setUserPos] = useState(null)
 const [driverPos,setDriverPos] = useState(null)
@@ -105,7 +111,7 @@ const destLng = destination?.lng
 
 
 /* =========================
-   USER LIVE LOCATION
+   USER LIVE LOCATION (SELF GPS)
 ========================= */
 
 useEffect(()=>{
@@ -118,7 +124,9 @@ watchRef.current = navigator.geolocation.watchPosition(
 
 const {latitude,longitude} = pos.coords
 
+if(latitude!=null && longitude!=null){
 setUserPos([latitude,longitude])
+}
 
 },
 
@@ -149,7 +157,7 @@ navigator.geolocation.clearWatch(watchRef.current)
 
 useEffect(()=>{
 
-if(!driverLocation?.lat || !driverLocation?.lng) return
+if(driverLocation?.lat == null || driverLocation?.lng == null) return
 
 setDriverPos(prev=>{
 
@@ -163,10 +171,10 @@ return [lat,lng]
 
 })
 
-if(driverPos){
+if(driverLocation?.lat && driverLocation?.lng){
 
-const dy = driverLocation.lat-driverPos[0]
-const dx = driverLocation.lng-driverPos[1]
+const dy = driverLocation.lat - (driverPos?.[0] || driverLocation.lat)
+const dx = driverLocation.lng - (driverPos?.[1] || driverLocation.lng)
 
 const angle = Math.atan2(dy,dx)*180/Math.PI
 
@@ -184,7 +192,8 @@ setHeading(angle)
 
 useEffect(()=>{
 
-if(!driverPos || !destination) return
+if(!driverPos || driverPos[0]==null || driverPos[1]==null) return
+if(destLat == null || destLng == null) return
 
 const R = 6371
 
@@ -213,21 +222,21 @@ setDistance(dist)
 
 const fetchRoute = async ()=>{
 
-if(!driverPos) return
+if(!driverPos || driverPos[0]==null || driverPos[1]==null) return
 
 let targetLat = null
 let targetLng = null
 
-if(pickupLat && pickupLng && !destination){
+if(pickupLat != null && pickupLng != null && !destination){
 targetLat = pickupLat
 targetLng = pickupLng
 }
-else if(destLat && destLng){
+else if(destLat != null && destLng != null){
 targetLat = destLat
 targetLng = destLng
 }
 
-if(!targetLat || !targetLng) return
+if(targetLat == null || targetLng == null) return
 
 try{
 
@@ -297,6 +306,8 @@ return(
 
 <div className="h-full w-full">
 
+{(driverPos || userPos) && (
+
 <MapContainer
 center={driverPos || userPos}
 zoom={16}
@@ -305,17 +316,21 @@ zoomControl={false}
 whenCreated={(map)=>setTimeout(()=>map.invalidateSize(),100)}
 >
 
-{/* ⭐ DARK FUTURISTIC MAP */}
-
 <TileLayer
-url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
 />
 
-
+{/* USER DEVICE LOCATION */}
 {userPos && (
 <Marker position={userPos}/>
 )}
 
+{/* 🔥 LIVE USER (FROM SOCKET) */}
+{userLiveLocation && (
+<Marker position={[userLiveLocation.lat, userLiveLocation.lng]} />
+)}
+
+{/* DRIVER */}
 {driverPos && (
 <Marker
 position={driverPos}
@@ -323,22 +338,23 @@ icon={createDriverIcon(heading)}
 />
 )}
 
-{pickupLat && pickupLng && (
+{/* PICKUP */}
+{pickupLat != null && pickupLng != null && (
 <Marker
 position={[pickupLat,pickupLng]}
 icon={pickupIcon}
 />
 )}
 
-{destLat && destLng && (
+{/* DROP */}
+{destLat != null && destLng != null && (
 <Marker
 position={[destLat,destLng]}
 icon={dropIcon}
 />
 )}
 
-{/* ⭐ GLOWING ROUTE */}
-
+{/* ROUTE */}
 {route.length>0 && (
 <Polyline
 positions={route}
@@ -351,8 +367,9 @@ opacity:0.9
 )}
 
 {/* HEAT ZONES */}
-
 {heatZones?.map((zone,index)=>{
+
+if(zone?.lat == null || zone?.lng == null) return null
 
 let color="green"
 
@@ -360,7 +377,6 @@ if(zone.level==="medium") color="orange"
 if(zone.level==="high") color="red"
 
 return(
-
 <Circle
 key={index}
 center={[zone.lat,zone.lng]}
@@ -371,7 +387,6 @@ fillColor:color,
 fillOpacity:0.35
 }}
 />
-
 )
 
 })}
@@ -383,10 +398,12 @@ distance={distance}
 
 </MapContainer>
 
+)}
+
 </div>
 
 )
 
 }
 
-export default React.memo(LiveTracking)
+export default React.memo(LiveTracking);

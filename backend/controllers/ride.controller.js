@@ -10,7 +10,7 @@ const { applyCoupon } = require('../services/coupon.service')
 const rideTimers = new Map()
 
 const generateOTP = () =>
-  Math.floor(100000 + Math.random() * 900000).toString()
+  Math.floor(1000 + Math.random() * 9000).toString()
 
 
 
@@ -193,7 +193,7 @@ if(!errors.isEmpty()){
       destinationLat,
       destinationLng,
       vehicleType,
-      otp,
+     otp: undefined,
       userBid,
       discount,
       status:"pending",
@@ -298,6 +298,13 @@ const startRide = async (req, res) => {
       .select("+otp")
       .populate("user")
 
+    console.log("========= OTP DEBUG =========");
+    console.log("RIDE ID:", rideId);
+    console.log("DB OTP:", ride?.otp);
+    console.log("USER OTP:", otp);
+    console.log("CAPTAIN FROM TOKEN:", req.captain);
+    console.log("=============================");
+
     if (!ride) {
       return res.status(404).json({
         message: "Ride not found"
@@ -310,10 +317,12 @@ const startRide = async (req, res) => {
       })
     }
 
-    if (!ride.otp || String(ride.otp) !== String(otp)) {
+    // 🔥 IMPORTANT FIX
+    if (Number(ride.otp) !== Number(otp)) {
+      console.log("❌ OTP NOT MATCHING");
       return res.status(400).json({
         message: "Invalid OTP"
-      })
+      });
     }
 
     ride.otp = null
@@ -344,8 +353,6 @@ const startRide = async (req, res) => {
   }
 
 }
-
-
 
 /* ================= END ================= */
 

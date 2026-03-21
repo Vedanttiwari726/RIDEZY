@@ -1,64 +1,78 @@
-import React,
-{
-  createContext,
-  useContext,
-  useEffect,
-  useState
+import React,{
+createContext,
+useContext,
+useEffect,
+useState
 } from "react";
 
 export const AppSettingsContext = createContext();
 
 export const AppSettingsProvider = ({ children }) => {
 
-  /* ================= THEME ================= */
-  const [darkMode,setDarkMode]=useState(
-    localStorage.getItem("darkMode")==="true"
-  );
+/* ================= THEME ================= */
 
-  /* ================= LANGUAGE ================= */
-  const [language,setLanguage]=useState(
-    localStorage.getItem("language") || "en"
-  );
+const [darkMode,setDarkMode]=useState(()=>{
 
+const saved = localStorage.getItem("darkMode");
 
-  /* ✅ APPLY DARK MODE TO HTML */
-  useEffect(()=>{
+return saved === null ? true : saved === "true";
 
-    const root=document.documentElement;
-
-    if(darkMode){
-      root.classList.add("dark");
-    }else{
-      root.classList.remove("dark");
-    }
-
-    localStorage.setItem("darkMode",darkMode);
-
-  },[darkMode]);
+});
 
 
-  /* ✅ SAVE LANGUAGE */
-  useEffect(()=>{
-    localStorage.setItem("language",language);
-  },[language]);
+/* ================= LANGUAGE ================= */
+
+const [language,setLanguage]=useState(
+localStorage.getItem("language") || "en"
+);
 
 
-  return(
-    <AppSettingsContext.Provider
-      value={{
-        darkMode,
-        setDarkMode,
-        language,
-        setLanguage
-      }}
-    >
-      {children}
-    </AppSettingsContext.Provider>
-  );
+/* APPLY THEME */
+
+useEffect(()=>{
+
+const root=document.documentElement;
+
+if(darkMode){
+root.classList.add("dark");
+}else{
+root.classList.remove("dark");
+}
+
+localStorage.setItem("darkMode",darkMode);
+
+},[darkMode]);
+
+
+/* SAVE LANGUAGE */
+
+useEffect(()=>{
+localStorage.setItem("language",language);
+},[language]);
+
+
+return(
+
+<AppSettingsContext.Provider
+value={{
+darkMode,
+setDarkMode,
+language,
+setLanguage
+}}
+>
+
+{children}
+
+</AppSettingsContext.Provider>
+
+);
+
 };
 
 
-/* EASY HOOK */
+/* HOOK */
+
 export const useAppSettings=()=>{
-  return useContext(AppSettingsContext);
+return useContext(AppSettingsContext);
 };

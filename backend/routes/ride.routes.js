@@ -63,7 +63,7 @@ router.get(
   '/start',
   authMiddleware.authCaptain,
   query('rideId').isMongoId(),
-  query('otp').isLength({ min: 6, max: 6 }),
+  query('otp').isLength({ min: 4, max: 4 }),
   validate,
   rideController.startRide
 )

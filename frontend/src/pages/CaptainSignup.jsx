@@ -20,9 +20,7 @@ const CaptainSignup = () => {
   const [vehicleColor,setVehicleColor]=useState("");
   const [vehiclePlate,setVehiclePlate]=useState("");
   const [vehicleCapacity,setVehicleCapacity]=useState("");
-  const [vehicleType,setVehicleType]=useState("");
-
-  /* ---------- SWITCH TO USER ---------- */
+  const [vehicleType,setVehicleType]=useState("bike"); // ✅ default fix
 
   const goUser = ()=> navigate("/signup");
 
@@ -35,10 +33,37 @@ const CaptainSignup = () => {
     }
   };
 
-  /* ---------- SUBMIT ---------- */
-
   const submitHandler = async(e)=>{
     e.preventDefault();
+
+    // ✅ VALIDATIONS ADDED
+    if(!firstName || !lastName){
+      return alert("Name is required");
+    }
+
+    if(!email.includes("@")){
+      return alert("Invalid email");
+    }
+
+    if(phone.length !== 10 || isNaN(phone)){
+      return alert("Phone must be 10 digits");
+    }
+
+    if(password.length < 6){
+      return alert("Password must be at least 6 characters");
+    }
+
+    if(!vehicleColor || !vehiclePlate){
+      return alert("Vehicle details required");
+    }
+
+    if(!vehicleCapacity || isNaN(vehicleCapacity)){
+      return alert("Invalid vehicle capacity");
+    }
+
+    if(!vehicleType){
+      return alert("Please select vehicle type");
+    }
 
     try{
 
@@ -58,6 +83,8 @@ const CaptainSignup = () => {
         }
       };
 
+      console.log("Sending Data:", captainData); // ✅ DEBUG
+
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/captains/register`,
         captainData
@@ -76,6 +103,8 @@ const CaptainSignup = () => {
       navigate("/captain-home");
 
     }catch(err){
+      console.log(err.response); // ✅ DEBUG
+
       alert(
         err.response?.data?.message ||
         err.response?.data?.errors?.[0]?.msg ||
@@ -88,21 +117,19 @@ const CaptainSignup = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center
-    bg-gray-100 dark:bg-black px-4">
+    bg-[#020617] px-4">
 
       <div className="w-full max-w-md">
 
-        {/* LOGO */}
         <h1 className="text-center text-4xl font-bold
-        text-yellow-500 mb-6">
+        text-green-400 mb-6">
           Ridezy
         </h1>
 
-        {/* ROLE SWITCH */}
         <div
           ref={sliderRef}
           className="relative flex items-center
-          bg-gray-200 dark:bg-gray-800
+          bg-white/10
           rounded-full p-1 mb-6 cursor-pointer"
           onMouseUp={handleDragEnd}
           onTouchEnd={(e)=>
@@ -111,30 +138,28 @@ const CaptainSignup = () => {
           onClick={goUser}
         >
           <span className="ml-4 text-sm
-          text-gray-600 dark:text-gray-300">
+          text-gray-300">
             Slide for User
           </span>
 
-          <div className="ml-auto bg-yellow-500
+          <div className="ml-auto bg-green-500
           text-black font-semibold
           px-6 py-2 rounded-full">
             ← Driver
           </div>
         </div>
 
-        {/* CARD */}
-        <div className="bg-white dark:bg-gray-900
+        <div className="bg-white/5 backdrop-blur-xl
         rounded-2xl shadow-xl p-8
-        border dark:border-gray-800">
+        border border-white/10">
 
           <form onSubmit={submitHandler}>
 
             <h2 className="text-xl font-semibold mb-5
-            text-gray-800 dark:text-white">
+            text-white">
               Captain Registration
             </h2>
 
-            {/* NAME */}
             <div className="flex gap-3 mb-4">
               <input
                 required
@@ -171,7 +196,6 @@ const CaptainSignup = () => {
               className="input mb-4"
             />
 
-            {/* PASSWORD WITH MONKEY */}
             <div className="relative mb-4">
 
               <input
@@ -194,7 +218,6 @@ const CaptainSignup = () => {
 
             </div>
 
-            {/* VEHICLE */}
             <div className="flex gap-3 mb-4">
               <input
                 required
@@ -239,8 +262,8 @@ const CaptainSignup = () => {
             </div>
 
             <button
-              className="w-full bg-yellow-500
-              hover:bg-yellow-400
+              className="w-full bg-green-500
+              hover:bg-green-400
               text-black font-semibold
               py-3 rounded-lg transition">
               Create Captain Account
@@ -249,16 +272,17 @@ const CaptainSignup = () => {
           </form>
 
           <p className="text-center mt-5
-          text-gray-600 dark:text-gray-400">
+          text-gray-400">
             Already registered?{" "}
             <Link
               to="/captain-login"
-              className="text-yellow-500 font-medium">
+              className="text-green-400 font-medium">
               Login
             </Link>
           </p>
 
         </div>
+
       </div>
     </div>
   );
