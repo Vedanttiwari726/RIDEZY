@@ -51,8 +51,8 @@ const dispatchRideSequentially = async (ride, captains, index = 0) => {
 
   const captain = captains[index]
 
-  if(!captain.socketId || captain.currentRide){
-    return dispatchRideSequentially(ride,captains,index+1)
+  if(!captain.socketId ){
+    return await  dispatchRideSequentially(ride,captains,index+1)
   }
 
   const latestRide = await rideModel
@@ -82,7 +82,7 @@ const dispatchRideSequentially = async (ride, captains, index = 0) => {
     if(!rideCheck || rideCheck.status!=="pending")
       return
 
-    dispatchRideSequentially(ride,captains,index+1)
+   await dispatchRideSequentially(ride,captains,index+1)
 
   },15000)
 
@@ -193,7 +193,7 @@ if(!errors.isEmpty()){
       destinationLat,
       destinationLng,
       vehicleType,
-     otp: undefined,
+     otp: otp,
       userBid,
       discount,
       status:"pending",
@@ -204,31 +204,32 @@ if(!errors.isEmpty()){
     res.status(201).json(ride)
 
     /* ⭐ FIXED DRIVER DISPATCH */
+const onlineCaptains = await captainModel.find({
+  socketId: { $ne: null }
+});
 
-    const onlineCaptains = await captainModel.find({
-      socketId: { $ne: null }
-    })
+if (!onlineCaptains.length) {
+  console.log("❌ No drivers online");
+  return;
+}
 
-    if(!onlineCaptains.length){
-      console.log("❌ No drivers online")
-      return
+onlineCaptains.forEach(driver => {
+
+  if (!driver.socketId) return;
+
+  console.log("🚗 Sending ride to driver:", driver.socketId);
+
+  sendMessageToSocketId(driver.socketId, {
+    event: "new-ride",
+    data: {
+      ...ride.toObject(),   // 🔥 IMPORTANT
+      expiresIn: 15
     }
+  });
+  res.status(201).json(ride);
 
-    onlineCaptains.forEach(driver => {
-
-      console.log("🚗 Sending ride to driver:",driver.socketId)
-
-      sendMessageToSocketId(driver.socketId,{
-        event:"new-ride",
-        data:{
-          ...ride.toObject(),
-          expiresIn:15
-        }
-      })
-
-    })
-
-  }catch(err){
+});
+    }catch(err){
     res.status(500).json({message:err.message})
   }
 }
@@ -331,14 +332,27 @@ const startRide = async (req, res) => {
     await ride.save()
 
     if (ride.user?.socketId) {
-      sendMessageToSocketId(
-        ride.user.socketId,
-        {
-          event: "ride-started",
-          data: ride
-        }
-      )
+  sendMessageToSocketId(
+    ride.user.socketId,
+    {
+      event: "ride-started",
+     data: {
+  rideId: ride._id.toString(),
+
+  // 🔥 FINAL FORMAT
+  pickup: {
+    lat: ride.pickupLat,
+    lng: ride.pickupLng
+  },
+
+  destination: {
+    lat: ride.destinationLat,
+    lng: ride.destinationLng
+  }
+}
     }
+  );
+}
 
     return res.json(ride)
 

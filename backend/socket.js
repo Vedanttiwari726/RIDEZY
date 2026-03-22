@@ -222,19 +222,17 @@ function initializeSocket(server) {
 
     /* ================= JOIN RIDE ROOM ================= */
 
-    socket.on("join-ride-room", ({ rideId }) => {
+   socket.on("join-ride-room", ({ rideId }) => {
 
-      if (!rideId) return;
+  if (!rideId) return;
 
-      const room = `ride-${rideId}`;
+  const room = `ride-${rideId}`;
 
-      socket.join(room);
+  socket.join(room);
 
-      console.log("Socket joined ride room:", room);
+  console.log("Socket joined ride room:", room);
 
-    });
-
-
+});
 
     /* ================= DRIVER LOCATION ================= */
 
@@ -366,17 +364,27 @@ function initializeSocket(server) {
 
         const room = `ride-${rideId}`;
 
-        io.to(room).emit("ride-started", {
+      io.to(room).emit("ride-started", {
 
-          rideId: ride._id.toString(),
+  rideId: ride._id.toString(),
 
-          captain: {
-            fullname: ride.captain?.fullname,
-            vehicle: ride.captain?.vehicle,
-            location: ride.captain?.location
-          }
+  pickup: {
+    lat: ride.pickupLat,
+    lng: ride.pickupLng
+  },
 
-        });
+  destination: {
+    lat: ride.destinationLat,
+    lng: ride.destinationLng
+  },
+
+  captain: {
+    fullname: ride.captain?.fullname,
+    vehicle: ride.captain?.vehicle,
+    location: ride.captain?.location
+  }
+
+});
 
       } catch (err) {
 
