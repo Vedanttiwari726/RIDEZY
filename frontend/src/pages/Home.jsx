@@ -149,17 +149,27 @@ if(!socket || !user?._id) return;
 socket.emit("join",{userType:"user",userId:user._id});
 
 const handleAccept=(data)=>{
-setDriverData(data);
-setRideStatus("matched");
+  setDriverData(data);
+  setRideStatus("matched");
+};
+
+const handleRideStarted = (ride)=>{
+  console.log("🔥 RIDE STARTED RECEIVED:", ride);
+
+  navigate("/ride-tracking",{
+    state:{ ride }
+  });
 };
 
 socket.on("ride-accepted",handleAccept);
+socket.on("ride-started", handleRideStarted);
 
-return()=>socket.off("ride-accepted",handleAccept);
+return ()=>{
+  socket.off("ride-accepted",handleAccept);
+  socket.off("ride-started", handleRideStarted); // 🔥 IMPORTANT
+};
 
-},[socket,user]);
-
-
+},[socket,user,navigate]);
 /* RECEIVE SEARCH */
 
 useEffect(()=>{

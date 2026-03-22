@@ -88,31 +88,27 @@ setRideStage("ongoing");
 
 /* ================= SOCKET ================= */
 
-useEffect(()=>{
+useEffect(() => {
 
-if(!socket || !captain?._id) return;
+  if (!socket || !captain?._id) return;
 
-const registerDriver=()=>{
+  console.log("🚗 REGISTER DRIVER:", captain._id);
 
-socket.emit("join",{
-userId:captain?._id,
-userType:"captain"
-});
+  // 🔥 driver register
+  socket.emit("join", {
+    userId: captain._id,
+    userType: "captain"
+  });
 
-if(localStorage.getItem("driverOnline")==="true"){
-socket.emit("captain-online",{captainId:captain?._id});
-setIsOnline(true);
-}
+  // 🔥 online status restore
+  if (localStorage.getItem("driverOnline") === "true") {
+    socket.emit("captain-online", {
+      captainId: captain._id
+    });
+    setIsOnline(true);
+  }
 
-};
-
-if(socket.connected) registerDriver();
-
-socket.on("connect",registerDriver);
-
-return()=>socket.off("connect",registerDriver);
-
-},[socket,captain]);
+}, [socket, captain?._id]);
 
 
 /* 🔥 DEBUG FORCE JOIN (ADD EXACTLY HERE) */
@@ -189,7 +185,7 @@ setRideStage("idle");
 setTimer(ride.expiresIn || 15);
 
 // 🔥 ADD THIS LINE
-localStorage.setItem("currentRideId", rideRequest._id);
+localStorage.setItem("currentRideId", ride._id);
 
 audioRef.current?.play().catch(()=>{});
 
@@ -231,11 +227,6 @@ socket.on("driver-arrived", ()=>{
   setRideStage("otp");
 });
 
-/* RIDE STARTED */
-socket.on("ride-started", ()=>{
-  console.log("Ride started event");
-  setRideStage("ongoing");
-});
 
 /* RIDE ENDED */
 socket.on("ride-ended", ()=>{
@@ -379,6 +370,13 @@ const verifyOTP = async () => {
     });
 
     console.log("✅ RIDE STARTED");
+    console.log("✅ RIDE STARTED");
+
+// 🔥🔥🔥 FINAL FIX
+  socket.emit("ride-started", {
+    rideId: rideId
+  });
+
 
     setRideStage("ongoing");
     setOtp("");

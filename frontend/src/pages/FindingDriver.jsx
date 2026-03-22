@@ -12,14 +12,15 @@ const location = useLocation();
 
 /* SAFE STATE */
 const rideData = location.state || {};
-
-const pickup = rideData.pickup || null;
-const destination = rideData.destination || null;
 const otp = rideData.otp || "";
 const rideId = rideData.rideId || null;
 
 const [rideStarted,setRideStarted] = useState(false);
 const [driver,setDriver] = useState(null);
+const [otpState] = useState(rideData.otp || "");
+const [rideIdState] = useState(rideData.rideId || null);
+const [pickup, setPickup] = useState(rideData.pickup || null);
+const [destination, setDestination] = useState(rideData.destination || null);
 
 /* ⭐ NEW: DRIVER BIDS */
 const [bids,setBids] = useState([]);
@@ -29,13 +30,10 @@ const [bids,setBids] = useState([]);
 
 useEffect(()=>{
 
-if(socket && rideId){
+if(socket && rideIdState){
+  console.log("Joining ride room:", rideIdState);
 
-console.log("Joining ride room:",rideId)
-
-socket.emit("join-ride-room",{ rideId })
-
-}
+socket.emit("join-ride-room",{ rideId })}
 
 },[socket,rideId])
 
@@ -77,11 +75,16 @@ captainId
 
 /* ================= SOCKET EVENTS ================= */
 
+// 🔥 ONLY UPDATED PARTS MARKED
+
+/* ================= SOCKET EVENTS ================= */
+
 useEffect(()=>{
 
 if(!socket) return;
 
 console.log("FindingDriver socket ready");
+
 
 
 /* DRIVER ACCEPTED */
@@ -117,28 +120,17 @@ setBids(bidList);
 };
 
 
-/* RIDE STARTED */
+/* 🔥 RIDE STARTED (FINAL FIX) */
 
 const handleStarted = (data)=>{
+  console.log("🔥 ride-started:", data);
 
-console.log("Ride started event received:",data);
+  setRideStarted(true); // no condition
 
-if(String(data?.rideId) !== String(rideId)) return;
-
-setRideStarted(true);
-
-navigate("/ride-started",{
-state:{
-pickup,
-destination,
-driver:data.captain,
-rideId:data.rideId
+if(Number.isFinite(data?.pickup?.lat) && Number.isFinite(data?.pickup?.lng)){
+  setPickup(data.pickup);
 }
-});
-
 };
-
-
 /* DRIVER LOCATION */
 
 const handleDriverLocation = (driverLoc)=>{
@@ -157,12 +149,10 @@ socket.on("ride-accepted",handleAccepted);
 socket.on("driver-arrived",handleArrived);
 socket.on("ride-started",handleStarted);
 socket.on("driver-location",handleDriverLocation);
-
-/* ⭐ NEW */
 socket.on("bid-update",handleBidUpdate);
 
 
-/* DEBUG LISTENER */
+/* DEBUG */
 
 const debugListener = (event,data)=>{
 console.log("SOCKET EVENT:",event,data);
@@ -184,7 +174,7 @@ socket.offAny(debugListener);
 
 };
 
-},[socket,rideId,navigate]);
+},[socket,rideIdState]);
 
 
 /* ================= UI ================= */
@@ -210,8 +200,7 @@ driverLocation={driver?.location}
 
 /* ================= BEFORE RIDE START ================= */
 
-{!rideStarted && (
-
+{!rideStarted &&  (
 <>
 
 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-10"/>
@@ -237,7 +226,7 @@ Share OTP with driver
 </p>
 
 <h1 className="text-3xl font-bold tracking-widest">
-{otp}
+{otpState}
 </h1>
 
 </div>

@@ -57,6 +57,29 @@ iconAnchor:[17,34]
 /* =========================
    MAP FOLLOW DRIVER
 ========================= */
+function FitBounds({ pickup, destination }) {
+  const map = useMap();
+
+  useEffect(() => {
+  if (!map) return;
+
+  if (
+    pickup?.lat &&
+    pickup?.lng &&
+    destination?.lat &&
+    destination?.lng
+  ) {
+    const bounds = [
+      [pickup.lat, pickup.lng],
+      [destination.lat, destination.lng],
+    ];
+
+    setTimeout(() => {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }, 300);
+  }
+}, [pickup, destination, map]);
+}
 
 function FollowDriver({position,distance}){
 
@@ -109,6 +132,8 @@ const pickupLng = pickup?.lng
 const destLat = destination?.lat
 const destLng = destination?.lng
 
+console.log("pickup:", pickup)
+console.log("destination:", destination)
 
 /* =========================
    USER LIVE LOCATION (SELF GPS)
@@ -219,49 +244,43 @@ setDistance(dist)
 /* =========================
    ROUTE FETCH
 ========================= */
-
 const fetchRoute = async ()=>{
 
-if(!driverPos || driverPos[0]==null || driverPos[1]==null) return
+if(
+  pickupLat != null &&
+  pickupLng != null &&
+  destLat != null &&
+  destLng != null
+){
+  try{
 
-let targetLat = null
-let targetLng = null
+    const url =
+      `https://router.project-osrm.org/route/v1/driving/${pickupLng},${pickupLat};${destLng},${destLat}?overview=full&geometries=geojson`
 
-if(pickupLat != null && pickupLng != null && !destination){
-targetLat = pickupLat
-targetLng = pickupLng
+    const res = await fetch(url)
+    const data = await res.json()
+
+    console.log("ROUTE API DATA:", data)
+
+    if(!data?.routes?.length){
+      setRoute([
+        [pickupLat, pickupLng],
+        [destLat, destLng]
+      ])
+      return
+    }
+
+    const coords = data.routes[0].geometry.coordinates.map(c=>[
+      c[1],
+      c[0]
+    ])
+
+    setRoute(coords)
+
+  }catch(err){
+    console.log("Route error:",err)
+  }
 }
-else if(destLat != null && destLng != null){
-targetLat = destLat
-targetLng = destLng
-}
-
-if(targetLat == null || targetLng == null) return
-
-try{
-
-const url =
-`https://router.project-osrm.org/route/v1/driving/${driverPos[1]},${driverPos[0]};${targetLng},${targetLat}?overview=full&geometries=geojson`
-
-const res = await fetch(url)
-
-const data = await res.json()
-
-if(!data?.routes?.length) return
-
-const coords = data.routes[0].geometry.coordinates.map(c=>[
-c[1],
-c[0]
-])
-
-setRoute(coords)
-
-}catch(err){
-
-console.log("Route error:",err)
-
-}
-
 }
 
 
@@ -309,8 +328,8 @@ return(
 {(driverPos || userPos) && (
 
 <MapContainer
-center={driverPos || userPos}
-zoom={16}
+  center={[19.07, 72.87]} // default Mumbai
+  zoom={13}
 style={{height:"100%",width:"100%"}}
 zoomControl={false}
 whenCreated={(map)=>setTimeout(()=>map.invalidateSize(),100)}
@@ -319,6 +338,7 @@ whenCreated={(map)=>setTimeout(()=>map.invalidateSize(),100)}
 <TileLayer
 url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
 />
+<FitBounds pickup={pickup} destination={destination} />
 
 {/* USER DEVICE LOCATION */}
 {userPos && (
@@ -339,19 +359,19 @@ icon={createDriverIcon(heading)}
 )}
 
 {/* PICKUP */}
-{pickupLat != null && pickupLng != null && (
-<Marker
-position={[pickupLat,pickupLng]}
-icon={pickupIcon}
-/>
+{Number.isFinite(pickupLat) && Number.isFinite(pickupLng) && (
+  <Marker
+    position={[pickupLat,pickupLng]}
+    icon={pickupIcon}
+  />
 )}
 
 {/* DROP */}
-{destLat != null && destLng != null && (
-<Marker
-position={[destLat,destLng]}
-icon={dropIcon}
-/>
+{Number.isFinite(destLat) && Number.isFinite(destLng) && (
+  <Marker
+    position={[destLat,destLng]}
+    icon={dropIcon}
+  />
 )}
 
 {/* ROUTE */}
@@ -391,10 +411,10 @@ fillOpacity:0.35
 
 })}
 
-<FollowDriver
+{/* <FollowDriver
 position={driverPos || userPos}
 distance={distance}
-/>
+/> */}
 
 </MapContainer>
 
