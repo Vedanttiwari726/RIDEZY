@@ -133,12 +133,27 @@ const { socket } = useContext(SocketContext);
 
 const watchRef = useRef(null)
 
-const pickupLat = pickup?.lat
-const pickupLng = pickup?.lng
+const pickupLat =
+  typeof pickup === "object"
+    ? pickup?.lat ?? pickup?.latitude
+    : null;
 
-const destLat = destination?.lat
-const destLng = destination?.lng
+const pickupLng =
+  typeof pickup === "object"
+    ? pickup?.lng ?? pickup?.longitude
+    : null;
 
+const destLat =
+  typeof destination === "object"
+    ? destination?.lat ?? destination?.latitude
+    : null;
+
+const destLng =
+  typeof destination === "object"
+    ? destination?.lng ?? destination?.longitude
+    : null;
+
+    
 console.log("pickup:", pickup)
 console.log("destination:", destination)
 
@@ -365,13 +380,15 @@ const fetchRoute = async () => {
 
         console.log("👤 USER ROUTE:", data);
 
-        if (!data?.routes?.length) {
-          setRoute([
-            [pickupLat, pickupLng],
-            [destLat, destLng]
-          ]);
-          return;
-        }
+        if(
+    pickupLat != null && pickupLng != null &&
+     destLat != null && destLng != null
+      ){
+     setRoute([
+    [pickupLat, pickupLng],
+    [destLat, destLng]
+  ])
+}
 
         const coords = data.routes[0].geometry.coordinates.map(c => [
           c[1],
@@ -464,7 +481,7 @@ icon={createDriverIcon(heading)}
 )}
 
 {/* PICKUP */}
-{Number.isFinite(pickupLat) && Number.isFinite(pickupLng) && (
+{pickupLat != null && pickupLng != null && !isNaN(pickupLat) && !isNaN(pickupLng) && (
   <Marker
     position={[pickupLat,pickupLng]}
     icon={pickupIcon}
@@ -472,7 +489,7 @@ icon={createDriverIcon(heading)}
 )}
 
 {/* DROP */}
-{Number.isFinite(destLat) && Number.isFinite(destLng) && (
+{destLat != null && destLng != null && !isNaN(destLat) && !isNaN(destLng) && (
   <Marker
     position={[destLat,destLng]}
     icon={dropIcon}

@@ -41,6 +41,7 @@ const [timer,setTimer]=useState(0);
 
 const [heatZones,setHeatZones]=useState([]);
 const [userLiveLocation, setUserLiveLocation] = useState(null);
+const [rideCoords, setRideCoords] = useState(null);
 
 const locationInterval=useRef(null);
 const timerRef=useRef(null);
@@ -58,6 +59,60 @@ Loading driver panel...
 </div>
 );
 }
+
+const geocodeAddress = async (address) => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+    );
+    const data = await res.json();
+
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      };
+    }
+  } catch (err) {
+    console.log("Geocode error:", err);
+  }
+
+  return null;
+};
+
+useEffect(() => {
+
+  const convert = async () => {
+
+    if (!rideRequest) return;
+
+    let pickupCoords = null;
+    let destCoords = null;
+
+    // 🔥 pickup
+    if (typeof rideRequest.pickup === "string") {
+      pickupCoords = await geocodeAddress(rideRequest.pickup);
+    } else if (rideRequest.pickup?.lat) {
+      pickupCoords = rideRequest.pickup;
+    }
+
+    // 🔥 destination
+    if (typeof rideRequest.destination === "string") {
+      destCoords = await geocodeAddress(rideRequest.destination);
+    } else if (rideRequest.destination?.lat) {
+      destCoords = rideRequest.destination;
+    }
+
+    if (pickupCoords && destCoords) {
+      setPickup(pickupCoords);
+      setDestination(destCoords);
+    }
+
+  };
+
+  convert();
+
+}, [rideRequest]);
 
 const handleOtpChange = (value, index) => {
 
@@ -109,12 +164,20 @@ socket.on("ride-accepted", (data) => {
 
   console.log("🚗 Driver received ride:", data);
 
-  if (data?.pickup?.lat && data?.pickup?.lng) {
-    setPickup(data.pickup);
-  }
+  const pickupLat = data?.pickup?.lat ?? data?.pickup?.latitude;
+  const pickupLng = data?.pickup?.lng ?? data?.pickup?.longitude;
 
-  if (data?.destination?.lat && data?.destination?.lng) {
-    setDestination(data.destination);
+  const destLat = data?.destination?.lat ?? data?.destination?.latitude;
+  const destLng = data?.destination?.lng ?? data?.destination?.longitude;
+
+  if(
+    pickupLat != null && pickupLng != null &&
+    destLat != null && destLng != null
+  ){
+    setRideCoords({
+      pickup: { lat: pickupLat, lng: pickupLng },
+      destination: { lat: destLat, lng: destLng }
+    });
   }
 
 });
@@ -200,6 +263,52 @@ const handler=(ride)=>{
 if(!ride) return;
 
 setRideRequest(ride);
+
+// 🔥 NEW: LOCK COORDS (IMPORTANT)
+if(ride?.pickup && ride?.destination){
+
+  const pickupLat = ride.pickup.lat ?? ride.pickup.latitude;
+  const pickupLng = ride.pickup.lng ?? ride.pickup.longitude;
+
+  const destLat = ride.destination.lat ?? ride.destination.latitude;
+  const destLng = ride.destination.lng ?? ride.destination.longitude;
+
+  if(
+    pickupLat != null && pickupLng != null &&
+    destLat != null && destLng != null
+  ){
+    setRideCoords({
+      pickup: { lat: pickupLat, lng: pickupLng },
+      destination: { lat: destLat, lng: destLng }
+    });
+  }
+}
+
+
+// (tumhara existing code rehne do — koi delete nahi)
+if(ride?.pickup && typeof ride.pickup === "object"){
+
+  const lat = ride.pickup.lat ?? ride.pickup.latitude;
+  const lng = ride.pickup.lng ?? ride.pickup.longitude;
+
+  if(lat != null && lng != null){
+    setPickup({ lat, lng });
+  } else {
+    console.log("❌ INVALID PICKUP:", ride.pickup);
+  }
+}
+
+if(ride?.destination && typeof ride.destination === "object"){
+
+  const lat = ride.destination.lat ?? ride.destination.latitude;
+  const lng = ride.destination.lng ?? ride.destination.longitude;
+
+  if(lat != null && lng != null){
+    setDestination({ lat, lng });
+  } else {
+    console.log("❌ INVALID DEST:", ride.destination);
+  }
+}
 setRideStage("idle");
 setTimer(ride.expiresIn || 15);
 
@@ -406,9 +515,7 @@ const verifyOTP = async () => {
   });
 
     // 🔥 FIX: pickup & destination retain kar
-      setPickup(rideRequest?.pickup);
-setDestination(rideRequest?.destination);
-
+     
     setRideStage("ongoing");
     setOtp("");
 
@@ -473,9 +580,7 @@ return(
 bg-gray-100 dark:bg-gradient-to-br dark:from-black dark:via-neutral-900 dark:to-black
 text-gray-900 dark:text-white">
 
- <div className="absolute top-0 left-0 w-full h-full z-0">
-    <LiveTracking />
-  </div>
+ 
    
    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50">
 
@@ -553,32 +658,18 @@ isOnline
 
 {/* MAP AREA */}
 
-{activeTab==="home"&&(
-<div className="fixed inset-x-0 top-16 bottom-24 z-0">
+{activeTab==="home" && (
+  <div className="fixed inset-x-0 top-16 bottom-24 z-0">
 
-{(rideStage==="accepted" || rideStage==="otp" || rideStage==="ongoing") && hasCoordinates ? (
-
-<DriverMap
-pickupLat={pickupLat}
-pickupLng={pickupLng}
-destinationLat={destinationLat}
-destinationLng={destinationLng}
-phase={rideStage==="ongoing" ? "destination" : "pickup"}
-/>
-
-):( 
-
-  <LiveTracking
+    <LiveTracking
   pickup={pickup}
   destination={destination}
   driverLocation={captainLocation}
-  mode ="captain"
+  mode="driver"
   rideStarted={rideStage === "ongoing"}
-
 />
-)}
 
-</div>
+  </div>
 )}
 
 {rideRequest && rideStage === "idle" && (
