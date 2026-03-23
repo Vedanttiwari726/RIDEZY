@@ -22,6 +22,9 @@ const couponRoutes = require("./routes/coupon.routes");
 /* 🔥 NEW PROFILE ROUTES */
 const profileRoutes = require('./routes/profileRoutes');
 const safetyRoutes = require("./routes/safety.routes");
+const savedPlaceRoutes = require("./routes/savedPlace.routes");
+
+
 
 
 connectToDb();
@@ -49,6 +52,7 @@ app.use('/rides', rideRoutes);
 app.use('/profile', profileRoutes);
 app.use("/safety", safetyRoutes);
 app.use("/coupon",couponRoutes);
+app.use("/profile", savedPlaceRoutes);
 
 
 module.exports = app;

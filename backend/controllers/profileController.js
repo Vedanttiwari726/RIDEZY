@@ -1,4 +1,4 @@
-const SavedPlace = require("../models/SavePlace");
+const savedPlaceModel = require("../models/savedPlace.model"); 
 
 exports.getSavedPlaces = async (req,res)=>{
 const places = await SavedPlace.find({ userId: req.user.id });
