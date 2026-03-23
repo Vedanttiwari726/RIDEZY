@@ -67,10 +67,16 @@ const dispatchRideSequentially = async (ride, captains, index = 0) => {
 
   sendMessageToSocketId(captain.socketId,{
     event:"new-ride",
-    data:{
-      ...rideData,
-      expiresIn:15
-    }
+   data: {
+  ...ride.toObject(),
+
+  pickupLat: ride.pickupLat,
+  pickupLng: ride.pickupLng,
+  destinationLat: ride.destinationLat,
+  destinationLng: ride.destinationLng,
+
+  expiresIn: 15
+}
   })
 
   console.log("🚗 NEW RIDE SENT TO DRIVER:",captain._id)
@@ -221,12 +227,17 @@ onlineCaptains.forEach(driver => {
 
   sendMessageToSocketId(driver.socketId, {
     event: "new-ride",
-    data: {
-      ...ride.toObject(),   // 🔥 IMPORTANT
-      expiresIn: 15
-    }
+  data: {
+  ...ride.toObject(),
+
+  pickupLat: ride.pickupLat,
+  pickupLng: ride.pickupLng,
+  destinationLat: ride.destinationLat,
+  destinationLng: ride.destinationLng,
+
+  expiresIn: 15
+}
   });
-  res.status(201).json(ride);
 
 });
     }catch(err){
