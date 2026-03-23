@@ -8,24 +8,40 @@ export default function Profile() {
   const { user } = useContext(UserDataContext);
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-28 relative">
+    <div className="min-h-screen bg-black text-white pb-28 relative">
 
       {/* 🔥 TOP HEADER */}
-      <div className="bg-gradient-to-br from-black to-gray-800 h-48 rounded-b-[40px] p-6 text-white">
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold">
-            {user?.fullname?.firstname || "User"}
-          </h2>
-          <p className="text-gray-300 text-sm">
-            {user?.email}
-          </p>
+      <div className="bg-gradient-to-br from-gray-900 via-black to-gray-800 h-52 rounded-b-[40px] p-6">
+
+        <div className="mt-10 flex items-center gap-4">
+
+          {/* PROFILE ICON */}
+          <div className="w-14 h-14 rounded-full bg-gray-700 flex items-center justify-center text-xl font-bold">
+            {user?.fullname?.firstname?.[0] || "U"}
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold">
+              {user?.fullname?.firstname || "User"}
+            </h2>
+            <p className="text-gray-400 text-sm">
+              {user?.email}
+            </p>
+          </div>
+
         </div>
       </div>
 
       {/* 🔥 FLOATING PROFILE CARD */}
-      <div className="absolute top-32 left-0 right-0 px-5">
+      <div className="absolute top-36 left-0 right-0 px-5">
 
-        <div className="bg-white rounded-3xl shadow-xl p-6 space-y-4">
+        {/* MENU CARD */}
+        <div className="
+          bg-white/5 backdrop-blur-xl
+          border border-white/10
+          rounded-3xl shadow-lg
+          p-5 space-y-2
+        ">
 
           <MenuItem
             icon="ri-map-pin-line"
@@ -59,11 +75,16 @@ export default function Profile() {
 
         </div>
 
-        {/* 🔥 LOGOUT SEPARATE CARD */}
-        <div className="bg-white rounded-3xl shadow-lg p-5 mt-5">
+        {/* 🔥 LOGOUT CARD */}
+        <div className="
+          bg-white/5 backdrop-blur-xl
+          border border-white/10
+          rounded-3xl shadow-lg
+          p-5 mt-5
+        ">
           <div
             onClick={() => navigate("/user/logout")}
-            className="flex items-center gap-3 text-red-500 cursor-pointer"
+            className="flex items-center gap-3 text-red-400 hover:text-red-500 cursor-pointer transition"
           >
             <i className="ri-logout-box-r-line text-xl" />
             <span className="font-medium">Logout</span>
@@ -84,17 +105,17 @@ const MenuItem = ({ icon, label, onClick }) => (
     className="
       flex items-center justify-between
       p-3 rounded-xl
-      hover:bg-gray-100
+      hover:bg-white/10
       transition cursor-pointer
     "
   >
     <div className="flex items-center gap-3">
-      <div className="bg-gray-100 p-2 rounded-lg">
+      <div className="bg-white/10 p-2 rounded-lg">
         <i className={`${icon} text-lg`} />
       </div>
       <span className="font-medium">{label}</span>
     </div>
 
-    <i className="ri-arrow-right-s-line text-gray-400 text-xl" />
+    <i className="ri-arrow-right-s-line text-gray-500 text-xl" />
   </div>
 );

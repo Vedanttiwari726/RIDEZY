@@ -25,7 +25,7 @@ lng:longitude
 }
 });
 
-alert("Emergency Alert Sent");
+alert("🚨 Emergency Alert Sent");
 
 });
 
@@ -48,7 +48,7 @@ const link = `${window.location.origin}/track/${rideId}`;
 
 navigator.clipboard.writeText(link);
 
-alert("Live ride link copied");
+alert("📍 Live ride link copied");
 
 };
 
@@ -56,106 +56,70 @@ alert("Live ride link copied");
 
 return(
 
-<div className="fixed inset-0 z-[9999]">
+<div className="fixed inset-0 z-[9999] text-white">
 
-{/* BACKGROUND BLUR */}
-<div className="absolute inset-0 bg-black/40 backdrop-blur-sm"/>
+{/* BACKGROUND */}
+<div className="absolute inset-0 bg-black/80 backdrop-blur-md"/>
 
 {/* FLOATING CARD */}
 <div className="
 absolute bottom-0 left-0 right-0
-bg-white
+bg-gradient-to-br from-gray-900 via-black to-gray-800
 rounded-t-3xl
 p-6
 space-y-5
-shadow-2xl
+border border-white/10
 ">
 
 {/* HEADER */}
 <div className="flex justify-between items-center">
 
-<h2 className="text-xl font-semibold">
+<h2 className="text-xl font-semibold tracking-wide">
 Safety Toolkit
 </h2>
 
 <button onClick={()=>navigate(-1)}>
-<i className="ri-close-line text-2xl"/>
+<i className="ri-close-line text-2xl text-gray-400"/>
 </button>
 
 </div>
 
-{/* SOS BUTTON */}
+{/* 🔥 SOS BUTTON (highlighted) */}
 <button
 onClick={triggerSOS}
 className="
 w-full
-bg-red-500
+bg-red-600 hover:bg-red-700
 text-white
 py-4
 rounded-2xl
 font-semibold
 flex items-center justify-center gap-2
-shadow-lg
-">
-<i className="ri-alarm-warning-line"/>
+shadow-lg shadow-red-500/20
+transition
+"
+>
+<i className="ri-alarm-warning-line text-lg"/>
 Emergency SOS
 </button>
 
-{/* SHARE RIDE */}
-<div
+{/* 🔥 OPTIONS */}
+
+<Option
+icon="ri-share-forward-line"
+label="Share Live Ride"
 onClick={shareRide}
-className="
-bg-gray-100
-p-4
-rounded-xl
-flex justify-between items-center
-cursor-pointer
-">
+/>
 
-<div className="flex items-center gap-3">
-<i className="ri-share-forward-line text-xl"/>
-Share Live Ride
-</div>
+<Option
+icon="ri-flag-line"
+label="Report Driver"
+/>
 
-<i className="ri-arrow-right-s-line text-xl"/>
-
-</div>
-
-{/* REPORT DRIVER */}
-<div className="
-bg-gray-100
-p-4
-rounded-xl
-flex justify-between items-center
-cursor-pointer
-">
-
-<div className="flex items-center gap-3">
-<i className="ri-flag-line text-xl"/>
-Report Driver
-</div>
-
-<i className="ri-arrow-right-s-line text-xl"/>
-
-</div>
-
-{/* CALL SUPPORT */}
-<div className="
-bg-gray-100
-p-4
-rounded-xl
-flex justify-between items-center
-cursor-pointer
-">
-
-<div className="flex items-center gap-3">
-<i className="ri-phone-line text-xl"/>
-Call Support
-</div>
-
-<i className="ri-arrow-right-s-line text-xl"/>
-
-</div>
+<Option
+icon="ri-phone-line"
+label="Call Support"
+/>
 
 </div>
 
@@ -164,3 +128,28 @@ Call Support
 );
 
 }
+
+/* 🔥 OPTION COMPONENT */
+const Option = ({ icon, label, onClick }) => (
+<div
+onClick={onClick}
+className="
+bg-white/5 backdrop-blur-xl
+border border-white/10
+p-4
+rounded-xl
+flex justify-between items-center
+cursor-pointer
+hover:bg-white/10
+transition
+"
+>
+<div className="flex items-center gap-3">
+<i className={`${icon} text-lg text-gray-300`}/>
+<span className="font-medium">{label}</span>
+</div>
+
+<i className="ri-arrow-right-s-line text-gray-500 text-xl"/>
+
+</div>
+);
