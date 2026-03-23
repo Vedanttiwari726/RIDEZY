@@ -30,6 +30,9 @@ const [activeTab,setActiveTab]=useState("home");
 const [isOnline,setIsOnline]=useState(
 localStorage.getItem("driverOnline")==="true"
 );
+const [pickup, setPickup] = useState(null)
+const [destination, setDestination] = useState(null)
+const [captainLocation, setCaptainLocation] = useState(null);
 
 const [rideRequest,setRideRequest]=useState(null);
 const [rideStage,setRideStage]=useState("idle");
@@ -42,6 +45,7 @@ const [userLiveLocation, setUserLiveLocation] = useState(null);
 const locationInterval=useRef(null);
 const timerRef=useRef(null);
 const audioRef=useRef(null);
+
 
 const token =
 localStorage.getItem("captainToken") ||
@@ -99,6 +103,21 @@ useEffect(() => {
     userId: captain._id,
     userType: "captain"
   });
+
+  // 🔥 RIDE ACCEPTED EVENT
+socket.on("ride-accepted", (data) => {
+
+  console.log("🚗 Driver received ride:", data);
+
+  if (data?.pickup?.lat && data?.pickup?.lng) {
+    setPickup(data.pickup);
+  }
+
+  if (data?.destination?.lat && data?.destination?.lng) {
+    setDestination(data.destination);
+  }
+
+});
 
   // 🔥 online status restore
   if (localStorage.getItem("driverOnline") === "true") {
@@ -255,18 +274,27 @@ navigator.geolocation.getCurrentPosition(
 
 pos=>{
 
+const lat = pos.coords.latitude;
+const lng = pos.coords.longitude;
+
+// 🔥 ADD THIS
+setCaptainLocation({
+  lat: lat,
+  lng: lng
+});
+
 socket?.emit("update-location-captain",{
 captainId:captain?._id,
 rideId:rideRequest?._id,
 location:{
-lat:pos.coords.latitude,
-lng:pos.coords.longitude
+lat:lat,
+lng:lng
 }
 });
 
 },
 
-err=>console.log("GPS ERROR:",err)
+err=>console.log("GPS ERROR:", err)
 
 );
 
@@ -377,6 +405,9 @@ const verifyOTP = async () => {
     rideId: rideId
   });
 
+    // 🔥 FIX: pickup & destination retain kar
+      setPickup(rideRequest?.pickup);
+setDestination(rideRequest?.destination);
 
     setRideStage("ongoing");
     setOtp("");
@@ -537,13 +568,14 @@ phase={rideStage==="ongoing" ? "destination" : "pickup"}
 
 ):( 
 
-<LiveTracking
-  pickup={rideRequest?.pickup}
-  destination={rideRequest?.destination}
-  heatZones={heatZones}
-  userLiveLocation={userLiveLocation}
-/>
+  <LiveTracking
+  pickup={pickup}
+  destination={destination}
+  driverLocation={captainLocation}
+  mode ="captain"
+  rideStarted={rideStage === "ongoing"}
 
+/>
 )}
 
 </div>

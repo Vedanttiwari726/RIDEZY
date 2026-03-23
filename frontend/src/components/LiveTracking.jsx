@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { SocketContext } from "../context/SocketContext";
 import { MapContainer, TileLayer, Marker, Polyline, useMap, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -115,14 +118,18 @@ pickup,
 destination,
 driverLocation,
 heatZones=[],
-userLiveLocation   // 🔥 ADDED
+userLiveLocation,
+mode = "user" ,
+rideStarted = false // 🔥 ADDED
 })=>{
 
+const navigate = useNavigate();
 const [userPos,setUserPos] = useState(null)
 const [driverPos,setDriverPos] = useState(null)
 const [route,setRoute] = useState([])
 const [heading,setHeading] = useState(0)
 const [distance,setDistance] = useState(0)
+const { socket } = useContext(SocketContext);
 
 const watchRef = useRef(null)
 
@@ -135,9 +142,29 @@ const destLng = destination?.lng
 console.log("pickup:", pickup)
 console.log("destination:", destination)
 
+useEffect(() => {
+  if (!socket) return;
+
+  const handleRideEnd = () => {
+    console.log("🏁 Ride ended → going home");
+    navigate("/home");
+  };
+
+  // 🔥 delay lagao (socket fully ready hone do)
+  const timer = setTimeout(() => {
+    socket.on("ride-ended", handleRideEnd);
+  }, 500);
+
+  return () => {
+    clearTimeout(timer);
+    socket.off("ride-ended", handleRideEnd);
+  };
+}, [socket, navigate]);
+
 /* =========================
    USER LIVE LOCATION (SELF GPS)
 ========================= */
+
 
 useEffect(()=>{
 
@@ -244,45 +271,123 @@ setDistance(dist)
 /* =========================
    ROUTE FETCH
 ========================= */
-const fetchRoute = async ()=>{
+const fetchRoute = async () => {
 
-if(
-  pickupLat != null &&
-  pickupLng != null &&
-  destLat != null &&
-  destLng != null
-){
-  try{
+  try {
 
-    const url =
-      `https://router.project-osrm.org/route/v1/driving/${pickupLng},${pickupLat};${destLng},${destLat}?overview=full&geometries=geojson`
+    // 🚗 DRIVER MODE
+    if (mode === "driver") {
 
-    const res = await fetch(url)
-    const data = await res.json()
+      // 🔹 BEFORE START → driver → pickup
+      if (
+        !rideStarted &&
+        driverPos &&
+        driverPos[0] != null &&
+        driverPos[1] != null &&
+        pickupLat != null &&
+        pickupLng != null
+      ) {
 
-    console.log("ROUTE API DATA:", data)
+        const url =
+          `https://router.project-osrm.org/route/v1/driving/${driverPos[1]},${driverPos[0]};${pickupLng},${pickupLat}?overview=full&geometries=geojson`;
 
-    if(!data?.routes?.length){
-      setRoute([
-        [pickupLat, pickupLng],
-        [destLat, destLng]
-      ])
-      return
+        const res = await fetch(url);
+        const data = await res.json();
+
+        console.log("🚗 DRIVER → PICKUP:", data);
+
+        if (!data?.routes?.length) {
+          setRoute([
+            [driverPos[0], driverPos[1]],
+            [pickupLat, pickupLng]
+          ]);
+          return;
+        }
+
+        const coords = data.routes[0].geometry.coordinates.map(c => [
+          c[1],
+          c[0]
+        ]);
+
+        setRoute(coords);
+      }
+
+      // 🔹 AFTER START → pickup → destination
+      else if (
+        rideStarted &&
+        pickupLat != null &&
+        pickupLng != null &&
+        destLat != null &&
+        destLng != null
+      ) {
+
+        const url =
+          `https://router.project-osrm.org/route/v1/driving/${pickupLng},${pickupLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        console.log("🚗 PICKUP → DESTINATION:", data);
+
+        if (!data?.routes?.length) {
+          setRoute([
+            [pickupLat, pickupLng],
+            [destLat, destLng]
+          ]);
+          return;
+        }
+
+        const coords = data.routes[0].geometry.coordinates.map(c => [
+          c[1],
+          c[0]
+        ]);
+
+        setRoute(coords);
+      }
+
+    } 
+    
+    // 👤 USER MODE
+    else {
+
+      if (
+        pickupLat != null &&
+        pickupLng != null &&
+        destLat != null &&
+        destLng != null
+      ) {
+
+        const url =
+          `https://router.project-osrm.org/route/v1/driving/${pickupLng},${pickupLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        console.log("👤 USER ROUTE:", data);
+
+        if (!data?.routes?.length) {
+          setRoute([
+            [pickupLat, pickupLng],
+            [destLat, destLng]
+          ]);
+          return;
+        }
+
+        const coords = data.routes[0].geometry.coordinates.map(c => [
+          c[1],
+          c[0]
+        ]);
+
+        setRoute(coords);
+      }
+
     }
 
-    const coords = data.routes[0].geometry.coordinates.map(c=>[
-      c[1],
-      c[0]
-    ])
-
-    setRoute(coords)
-
-  }catch(err){
-    console.log("Route error:",err)
+  } catch (err) {
+    console.log("Route error:", err);
   }
-}
-}
 
+};
 
 
 /* =========================

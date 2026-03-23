@@ -30,12 +30,15 @@ const [bids,setBids] = useState([]);
 
 useEffect(()=>{
 
-if(socket && rideIdState){
-  console.log("Joining ride room:", rideIdState);
+if(!socket || !rideIdState) return;
 
-socket.emit("join-ride-room",{ rideId })}
+console.log("🔥 Joining ride room:", rideIdState, socket.id);
 
-},[socket,rideId])
+setTimeout(()=>{
+  socket.emit("join-ride-room",{ rideId: rideIdState });
+},300);
+
+},[socket,rideIdState]);
 
 
 /* ================= CANCEL RIDE ================= */
@@ -75,103 +78,107 @@ captainId
 
 /* ================= SOCKET EVENTS ================= */
 
-// 🔥 ONLY UPDATED PARTS MARKED
-
-/* ================= SOCKET EVENTS ================= */
-
 useEffect(()=>{
 
 if(!socket) return;
 
-console.log("FindingDriver socket ready");
+console.log("✅ FindingDriver socket ready:", socket.id);
 
+/* 🔥 NEW RIDE (ADDED FIX) */
+const handleNewRide = (data)=>{
+  console.log("🚗 NEW RIDE RECEIVED:", data);
 
+  if(data?.pickup){
+    setPickup(data.pickup);
+  }
+
+  if(data?.destination){
+    setDestination(data.destination);
+  }
+};
 
 /* DRIVER ACCEPTED */
-
 const handleAccepted = (data)=>{
+  console.log("Driver accepted:",data);
 
-console.log("Driver accepted:",data);
+  if(data?.captain){
+    setDriver(data.captain);
+  }
 
-if(data?.captain){
-setDriver(data.captain);
-}
+  if(data?.ride?.pickup){
+    setPickup(data.ride.pickup);
+  }
 
+  if(data?.ride?.destination){
+    setDestination(data.ride.destination);
+  }
 };
-
 
 /* DRIVER ARRIVED */
-
 const handleArrived = (data)=>{
-
-console.log("Driver arrived:",data);
-
+  console.log("Driver arrived:",data);
 };
 
-
-/* ⭐ RECEIVE BIDS */
-
+/* BIDS */
 const handleBidUpdate = (bidList)=>{
-
-console.log("Driver bids:",bidList);
-
-setBids(bidList);
-
+  console.log("Driver bids:",bidList);
+  setBids(bidList);
 };
 
-
-/* 🔥 RIDE STARTED (FINAL FIX) */
-
+/* RIDE STARTED */
 const handleStarted = (data)=>{
   console.log("🔥 ride-started:", data);
 
-  setRideStarted(true); // no condition
+  setRideStarted(true);
 
-if(Number.isFinite(data?.pickup?.lat) && Number.isFinite(data?.pickup?.lng)){
-  setPickup(data.pickup);
-}
+  if(data?.ride?.pickup){
+    setPickup(data.ride.pickup);
+  }
+
+  if(data?.ride?.destination){
+    setDestination(data.ride.destination);
+  }
+
+  if(Number.isFinite(data?.pickup?.lat)){
+    setPickup(data.pickup);
+  }
 };
+
 /* DRIVER LOCATION */
-
 const handleDriverLocation = (driverLoc)=>{
-
-setDriver(prev=>({
-...(prev || {}),
-location:driverLoc
-}));
-
+  setDriver(prev=>({
+    ...(prev || {}),
+    location:driverLoc
+  }));
 };
 
+/* 🔥 ATTACH AFTER DELAY */
+const timer = setTimeout(()=>{
 
-/* REGISTER EVENTS */
+  socket.on("new-ride", handleNewRide); // 🔥 ADDED
+  socket.on("ride-accepted",handleAccepted);
+  socket.on("driver-arrived",handleArrived);
+  socket.on("ride-started",handleStarted);
+  socket.on("driver-location",handleDriverLocation);
+  socket.on("bid-update",handleBidUpdate);
 
-socket.on("ride-accepted",handleAccepted);
-socket.on("driver-arrived",handleArrived);
-socket.on("ride-started",handleStarted);
-socket.on("driver-location",handleDriverLocation);
-socket.on("bid-update",handleBidUpdate);
-
+},300);
 
 /* DEBUG */
-
-const debugListener = (event,data)=>{
-console.log("SOCKET EVENT:",event,data);
-};
-
-socket.onAny(debugListener);
-
+socket.onAny((event,data)=>{
+  console.log("📡 EVENT:",event,data);
+});
 
 /* CLEANUP */
-
 return()=>{
+  clearTimeout(timer);
 
-socket.off("ride-accepted",handleAccepted);
-socket.off("driver-arrived",handleArrived);
-socket.off("ride-started",handleStarted);
-socket.off("driver-location",handleDriverLocation);
-socket.off("bid-update",handleBidUpdate);
-socket.offAny(debugListener);
-
+  socket.off("new-ride", handleNewRide); // 🔥 ADDED
+  socket.off("ride-accepted",handleAccepted);
+  socket.off("driver-arrived",handleArrived);
+  socket.off("ride-started",handleStarted);
+  socket.off("driver-location",handleDriverLocation);
+  socket.off("bid-update",handleBidUpdate);
 };
 
 },[socket,rideIdState]);
@@ -217,22 +224,17 @@ Finding your driver
 Drivers are bidding for your ride
 </p>
 
-{/* OTP */}
-
 <div className="bg-gray-100 rounded-2xl p-4 text-center">
 
-<p className="text-xs text-gray-500">
+<p className="text-xs text-black-500">
 Share OTP with driver
 </p>
 
-<h1 className="text-3xl font-bold tracking-widest">
+<h1 className=" text-black text-3xl font-bold tracking-widest">
 {otpState}
 </h1>
 
 </div>
-
-
-{/* ================= DRIVER BIDS ================= */}
 
 {bids.length > 0 && (
 
@@ -277,7 +279,6 @@ className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm">
 </div>
 
 )}
-
 
 <button
 onClick={cancelRide}

@@ -161,10 +161,20 @@ const handleRideStarted = (ride)=>{
   });
 };
 
+const handleRideEnd = (data) => {
+
+  console.log("🚨 Ride ended (user side):", data);
+
+  // 🔥 redirect to home
+  navigate("/home");
+
+};
+socket.on("ride-ended", handleRideEnd);
 socket.on("ride-accepted",handleAccept);
 socket.on("ride-started", handleRideStarted);
 
 return ()=>{
+  socket.off("ride-ended", handleRideEnd);
   socket.off("ride-accepted",handleAccept);
   socket.off("ride-started", handleRideStarted); // 🔥 IMPORTANT
 };

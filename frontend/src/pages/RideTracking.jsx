@@ -192,4 +192,4 @@ Cancel Ride
 </div>
 
 );
-}
+} 
