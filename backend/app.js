@@ -16,6 +16,9 @@ const couponRoutes = require("./routes/coupon.routes");
 
 
 
+
+
+
 /* 🔥 NEW PROFILE ROUTES */
 const profileRoutes = require('./routes/profileRoutes');
 const safetyRoutes = require("./routes/safety.routes");
@@ -46,5 +49,6 @@ app.use('/rides', rideRoutes);
 app.use('/profile', profileRoutes);
 app.use("/safety", safetyRoutes);
 app.use("/coupon",couponRoutes);
+
 
 module.exports = app;

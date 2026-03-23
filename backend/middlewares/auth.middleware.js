@@ -33,7 +33,7 @@ const extractToken = (req) => {
 /* ==========================
    USER AUTH
 ========================== */
-module.exports.authUser = async (req, res, next) => {
+const authUser = async (req, res, next) => {
     try {
 
         const token = extractToken(req);
@@ -71,9 +71,9 @@ module.exports.authUser = async (req, res, next) => {
 
 
 /* ==========================
-   CAPTAIN AUTH (FIXED FINAL)
+   CAPTAIN AUTH
 ========================== */
-module.exports.authCaptain = async (req, res, next) => {
+const authCaptain = async (req, res, next) => {
     try {
 
         const token = extractToken(req);
@@ -87,7 +87,6 @@ module.exports.authCaptain = async (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        /* FIX — accept id OR _id */
         const captainId =
             decoded.id ||
             decoded._id ||
@@ -110,4 +109,11 @@ module.exports.authCaptain = async (req, res, next) => {
         console.log("CAPTAIN AUTH ERROR:", err.message);
         return res.status(401).json({ message: "Unauthorized" });
     }
+};
+
+
+/* 🔥 FINAL EXPORT (IMPORTANT FIX) */
+module.exports = {
+    authUser,
+    authCaptain
 };
